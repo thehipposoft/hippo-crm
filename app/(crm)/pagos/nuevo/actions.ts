@@ -1,7 +1,7 @@
 'use server'
 
 import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
+import { redirect, unstable_rethrow } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { wpFetch } from '@/lib/wp'
 
@@ -37,7 +37,8 @@ export async function crearPago(
       method: 'POST',
       body: JSON.stringify(payload),
     })
-  } catch {
+  } catch (error) {
+    unstable_rethrow(error)
     return { error: 'No se pudo guardar el pago. Intentá de nuevo.' }
   }
 

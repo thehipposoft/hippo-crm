@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers'
-import { notFound } from 'next/navigation'
+import { notFound, unstable_rethrow } from 'next/navigation'
 import Link from 'next/link'
 import { wpFetch } from '@/lib/wp'
 import { ProyectosTable } from '@/components/proyectos/ProyectosTable'
@@ -16,7 +16,8 @@ export default async function ClienteDetallePage({
   let cliente: ClienteRow
   try {
     cliente = await wpFetch(`/clientes/${id}`, token)
-  } catch {
+  } catch (error) {
+    unstable_rethrow(error)
     notFound()
   }
 

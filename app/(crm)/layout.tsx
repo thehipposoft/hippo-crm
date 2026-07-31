@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import Image from 'next/image'
 import Link from 'next/link'
+import { normalizarNombreUsuario } from '@/lib/user'
 
 const TOKEN_COOKIE = 'hippo_token'
 const USER_NAME_COOKIE = 'hippo_user_name'
@@ -13,7 +14,7 @@ export default async function CrmLayout({
 }) {
   const cookieStore = await cookies()
   const token = cookieStore.get(TOKEN_COOKIE)?.value
-  const userName = cookieStore.get(USER_NAME_COOKIE)?.value ?? 'Usuario'
+  const userName = normalizarNombreUsuario(cookieStore.get(USER_NAME_COOKIE)?.value ?? 'Usuario')
 
   if (!token) redirect('/login')
 

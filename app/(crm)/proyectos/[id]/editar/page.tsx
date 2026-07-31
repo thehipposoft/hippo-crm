@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers'
-import { notFound } from 'next/navigation'
+import { notFound, unstable_rethrow } from 'next/navigation'
 import { wpFetch } from '@/lib/wp'
 import type { ClienteRow, ProyectoRow } from '@/lib/types'
 import { EditarProyectoForm } from './EditarProyectoForm'
@@ -15,7 +15,8 @@ export default async function EditarProyectoPage({
   let proyecto: ProyectoRow
   try {
     proyecto = await wpFetch(`/proyectos/${id}`, token)
-  } catch {
+  } catch (error) {
+    unstable_rethrow(error)
     notFound()
   }
 

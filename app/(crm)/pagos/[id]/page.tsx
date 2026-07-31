@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers'
-import { notFound } from 'next/navigation'
+import { notFound, unstable_rethrow } from 'next/navigation'
 import Link from 'next/link'
 import { wpFetch } from '@/lib/wp'
 import type { PagoRow } from '@/lib/types'
@@ -23,7 +23,8 @@ export default async function PagoDetallePage({
   let pago: PagoRow
   try {
     pago = await wpFetch(`/pagos/${id}`, token)
-  } catch {
+  } catch (error) {
+    unstable_rethrow(error)
     notFound()
   }
 

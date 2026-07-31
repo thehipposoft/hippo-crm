@@ -25,6 +25,9 @@ const formatDate = (iso: string | null): string => {
   })
 }
 
+const truncate = (text: string, max: number): string =>
+  text.length > max ? text.slice(0, max) + '…' : text
+
 interface ProyectosTableProps {
   proyectos: ProyectoRow[]
   mostrarCliente?: boolean
@@ -37,7 +40,7 @@ export const ProyectosTable = ({ proyectos, mostrarCliente = true }: ProyectosTa
   const filtered =
     filtro === 'TODOS' ? proyectos : proyectos.filter((p) => p.estado === filtro)
 
-  const columnCount = mostrarCliente ? 5 : 4
+  const columnCount = mostrarCliente ? 6 : 5
 
   return (
     <div>
@@ -77,6 +80,9 @@ export const ProyectosTable = ({ proyectos, mostrarCliente = true }: ProyectosTa
               <th className="px-5 py-3.5 text-left text-xs font-medium text-dark-text/50 uppercase tracking-wider">
                 Fecha de inicio
               </th>
+              <th className="px-5 py-3.5 text-left text-xs font-medium text-dark-text/50 uppercase tracking-wider">
+                Acción pendiente
+              </th>
               <th className="px-3 py-3.5 w-12" />
             </tr>
           </thead>
@@ -112,6 +118,9 @@ export const ProyectosTable = ({ proyectos, mostrarCliente = true }: ProyectosTa
                   </td>
                   <td className="px-5 py-4 text-dark-text/60 tabular-nums">
                     {formatDate(proyecto.fechaInicio)}
+                  </td>
+                  <td className="px-5 py-4 max-w-xs text-dark-text/60">
+                    {proyecto.accionPendiente ? truncate(proyecto.accionPendiente, 60) : '—'}
                   </td>
                   <td className="px-3 py-4" onClick={(e) => e.stopPropagation()}>
                     <ProyectoRowActions proyectoId={proyecto.id} />

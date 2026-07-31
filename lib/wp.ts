@@ -1,3 +1,5 @@
+import { redirect } from 'next/navigation'
+
 export const wpFetch = async <T>(
   path: string,
   token?: string,
@@ -13,6 +15,11 @@ export const wpFetch = async <T>(
     ...options,
     headers,
   })
+
+  // Un 401 sin token es login con credenciales inválidas, no una sesión vencida.
+  if (res.status === 401 && token) {
+    redirect('/login')
+  }
 
   if (!res.ok) {
     throw new Error(`WP API error: ${res.status} ${res.statusText}`)

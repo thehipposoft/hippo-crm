@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers'
-import { notFound } from 'next/navigation'
+import { notFound, unstable_rethrow } from 'next/navigation'
 import Link from 'next/link'
 import { wpFetch } from '@/lib/wp'
 import { StatusBadge } from '@/components/proyectos/StatusBadge'
@@ -22,7 +22,8 @@ export default async function ProyectoDetallePage({
   let proyecto: ProyectoRow
   try {
     proyecto = await wpFetch(`/proyectos/${id}`, token)
-  } catch {
+  } catch (error) {
+    unstable_rethrow(error)
     notFound()
   }
 

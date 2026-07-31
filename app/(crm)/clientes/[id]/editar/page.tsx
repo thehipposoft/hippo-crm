@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers'
-import { notFound } from 'next/navigation'
+import { notFound, unstable_rethrow } from 'next/navigation'
 import { wpFetch } from '@/lib/wp'
 import type { ClienteRow } from '@/lib/types'
 import { EditarClienteForm } from './EditarClienteForm'
@@ -15,7 +15,8 @@ export default async function EditarClientePage({
   let cliente: ClienteRow
   try {
     cliente = await wpFetch(`/clientes/${id}`, token)
-  } catch {
+  } catch (error) {
+    unstable_rethrow(error)
     notFound()
   }
 

@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers'
-import { notFound } from 'next/navigation'
+import { notFound, unstable_rethrow } from 'next/navigation'
 import { wpFetch } from '@/lib/wp'
 import type { PagoRow, ProyectoRow } from '@/lib/types'
 import { EditarPagoForm } from './EditarPagoForm'
@@ -15,7 +15,8 @@ export default async function EditarPagoPage({
   let pago: PagoRow
   try {
     pago = await wpFetch(`/pagos/${id}`, token)
-  } catch {
+  } catch (error) {
+    unstable_rethrow(error)
     notFound()
   }
 

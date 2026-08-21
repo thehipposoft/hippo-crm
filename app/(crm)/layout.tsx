@@ -64,6 +64,26 @@ export default async function CrmLayout({
           </Link>
 
           <Link
+            href="/costos"
+            className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-dark-text/60 hover:bg-brand-blue/10 hover:text-dark-text transition-colors"
+          >
+            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 14l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            Costos
+          </Link>
+
+          <Link
+            href="/graficos"
+            className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-dark-text/60 hover:bg-brand-blue/10 hover:text-dark-text transition-colors"
+          >
+            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19V6m0 13H6a2 2 0 01-2-2V9a2 2 0 012-2h3m0 12h6m0 0h3a2 2 0 002-2V5a2 2 0 00-2-2h-3a2 2 0 00-2 2v14z" />
+            </svg>
+            Gráficos
+          </Link>
+
+          <Link
             href="/clientes"
             className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-dark-text/60 hover:bg-brand-blue/10 hover:text-dark-text transition-colors"
           >

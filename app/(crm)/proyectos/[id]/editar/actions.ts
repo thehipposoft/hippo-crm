@@ -20,6 +20,8 @@ export async function actualizarProyecto(
   const clienteId = formData.get('cliente_id')?.toString()
   if (!clienteId) return { error: 'El cliente es obligatorio.' }
 
+  const tipoProyecto = formData.get('tipo_proyecto')?.toString() || 'ON_OFF'
+
   const payload = {
     nombre,
     cliente_id: clienteId,
@@ -27,6 +29,11 @@ export async function actualizarProyecto(
     fecha_inicio: formData.get('fecha_inicio')?.toString() || null,
     deadline: formData.get('deadline')?.toString() || null,
     accion_pendiente: formData.get('accion_pendiente')?.toString() || null,
+    tipo_proyecto: tipoProyecto,
+    valor: Number(formData.get('valor')?.toString() || 0),
+    frecuencia_pago: tipoProyecto === 'RECURRENTE' ? formData.get('frecuencia_pago')?.toString() || 'MENSUAL' : null,
+    monto_pendiente: Number(formData.get('monto_pendiente')?.toString() || 0),
+    url: formData.get('url')?.toString() || null,
   }
 
   const token = (await cookies()).get('hippo_token')?.value

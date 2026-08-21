@@ -13,8 +13,8 @@ const formatDate = (iso: string | null): string => {
   })
 }
 
-const formatMonto = (monto: number): string =>
-  new Intl.NumberFormat('es-UY', { style: 'currency', currency: 'UYU' }).format(monto)
+const formatMonto = (monto: number, moneda: string | null | undefined): string =>
+  new Intl.NumberFormat('es-UY', { style: 'currency', currency: moneda || 'USD' }).format(monto)
 
 const truncate = (text: string, max: number): string =>
   text.length > max ? text.slice(0, max) + '…' : text
@@ -26,13 +26,23 @@ interface PagosTableProps {
 
 export const PagosTable = ({ pagos, mostrarProyecto = true }: PagosTableProps) => {
   const router = useRouter()
-  const total = pagos.reduce((sum, p) => sum + p.monto, 0)
+  const totalesPorMoneda = pagos.reduce<Record<string, number>>((acc, p) => {
+    acc[p.moneda] = (acc[p.moneda] ?? 0) + p.monto
+    return acc
+  }, {})
   const columnCount = (mostrarProyecto ? 6 : 5) + 1
 
   return (
     <div>
       <p className="mb-5 text-sm text-dark-text/60">
-        Total: <span className="font-medium text-dark-text">{formatMonto(total)}</span>
+        Total:{' '}
+        <span className="font-medium text-dark-text">
+          {Object.keys(totalesPorMoneda).length === 0
+            ? '—'
+            : Object.entries(totalesPorMoneda)
+                .map(([moneda, monto]) => formatMonto(monto, moneda))
+                .join(' + ')}
+        </span>
       </p>
 
       <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
@@ -93,7 +103,7 @@ export const PagosTable = ({ pagos, mostrarProyecto = true }: PagosTableProps) =
                     {formatDate(pago.fecha)}
                   </td>
                   <td className="px-5 py-4 text-dark-text tabular-nums">
-                    {formatMonto(pago.monto)}
+                    {formatMonto(pago.monto, pago.moneda)}
                   </td>
                   <td className="px-5 py-4 text-dark-text/60">
                     {pago.medioPago ?? '—'}

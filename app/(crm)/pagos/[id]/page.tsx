@@ -9,8 +9,8 @@ const formatDate = (iso: string | null): string => {
   return new Date(iso).toLocaleDateString('es-UY', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
-const formatMonto = (monto: number): string =>
-  new Intl.NumberFormat('es-UY', { style: 'currency', currency: 'UYU' }).format(monto)
+const formatMonto = (monto: number, moneda: string): string =>
+  new Intl.NumberFormat('es-UY', { style: 'currency', currency: moneda }).format(monto)
 
 export default async function PagoDetallePage({
   params,
@@ -36,7 +36,7 @@ export default async function PagoDetallePage({
             ← Volver a pagos
           </Link>
           <h1 className="mt-2 text-xl font-semibold text-dark-text">
-            {formatMonto(pago.monto)}
+            {formatMonto(pago.monto, pago.moneda)}
           </h1>
         </div>
         <Link
@@ -59,7 +59,8 @@ export default async function PagoDetallePage({
         </div>
         <Field label="Cliente" value={pago.clienteNombre ?? '—'} />
         <Field label="Fecha" value={formatDate(pago.fecha)} />
-        <Field label="Monto" value={formatMonto(pago.monto)} />
+        <Field label="Monto" value={formatMonto(pago.monto, pago.moneda)} />
+        <Field label="Moneda" value={pago.moneda} />
         <Field label="Medio de pago" value={pago.medioPago ?? '—'} />
         <div className="px-5 py-4">
           <span className="block text-xs font-medium text-dark-text/50 uppercase tracking-wider mb-1.5">

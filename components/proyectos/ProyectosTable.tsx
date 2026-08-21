@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import type { ProyectoRow, Estado } from '@/lib/types'
+import type { ProyectoRow, Estado, FrecuenciaPago } from '@/lib/types'
 import { StatusBadge } from './StatusBadge'
 import { ProyectoRowActions } from './ProyectoRowActions'
 
@@ -28,6 +28,20 @@ const formatDate = (iso: string | null): string => {
 const truncate = (text: string, max: number): string =>
   text.length > max ? text.slice(0, max) + '…' : text
 
+const FRECUENCIA_SUFIJO: Record<FrecuenciaPago, string> = {
+  SEMANAL: '/ semana',
+  MENSUAL: '/ mes',
+  ANUAL: '/ año',
+}
+
+const formatValor = (proyecto: ProyectoRow): string => {
+  const monto = `$${new Intl.NumberFormat('es-UY').format(proyecto.valor)}`
+  if (proyecto.tipoProyecto === 'RECURRENTE' && proyecto.frecuenciaPago) {
+    return `${monto} ${FRECUENCIA_SUFIJO[proyecto.frecuenciaPago]}`
+  }
+  return monto
+}
+
 interface ProyectosTableProps {
   proyectos: ProyectoRow[]
   mostrarCliente?: boolean
@@ -40,7 +54,7 @@ export const ProyectosTable = ({ proyectos, mostrarCliente = true }: ProyectosTa
   const filtered =
     filtro === 'TODOS' ? proyectos : proyectos.filter((p) => p.estado === filtro)
 
-  const columnCount = mostrarCliente ? 6 : 5
+  const columnCount = mostrarCliente ? 7 : 6
 
   return (
     <div>
@@ -81,6 +95,9 @@ export const ProyectosTable = ({ proyectos, mostrarCliente = true }: ProyectosTa
                 Fecha de inicio
               </th>
               <th className="px-5 py-3.5 text-left text-xs font-medium text-dark-text/50 uppercase tracking-wider">
+                Valor
+              </th>
+              <th className="px-5 py-3.5 text-left text-xs font-medium text-dark-text/50 uppercase tracking-wider">
                 Acción pendiente
               </th>
               <th className="px-3 py-3.5 w-12" />
@@ -118,6 +135,9 @@ export const ProyectosTable = ({ proyectos, mostrarCliente = true }: ProyectosTa
                   </td>
                   <td className="px-5 py-4 text-dark-text/60 tabular-nums">
                     {formatDate(proyecto.fechaInicio)}
+                  </td>
+                  <td className="px-5 py-4 text-dark-text/60 tabular-nums">
+                    {formatValor(proyecto)}
                   </td>
                   <td className="px-5 py-4 max-w-xs text-dark-text/60">
                     {proyecto.accionPendiente ? truncate(proyecto.accionPendiente, 60) : '—'}

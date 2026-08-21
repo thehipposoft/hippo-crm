@@ -50,6 +50,28 @@ export const EditarClienteForm = ({ cliente }: EditarClienteFormProps) => {
           />
         </div>
 
+        <div>
+          <label htmlFor="email_contacto" className="block text-xs font-medium text-dark-text/60 mb-1.5">
+            Email
+          </label>
+          <input
+            id="email_contacto" name="email_contacto" type="email" defaultValue={cliente.emailContacto ?? ''}
+            className="w-full rounded-lg bg-white border border-slate-200 px-3.5 py-2.5 text-sm text-dark-text placeholder-dark-text/30 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition"
+            placeholder="Opcional"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="pais" className="block text-xs font-medium text-dark-text/60 mb-1.5">
+            País
+          </label>
+          <input
+            id="pais" name="pais" type="text" defaultValue={cliente.pais ?? ''}
+            className="w-full rounded-lg bg-white border border-slate-200 px-3.5 py-2.5 text-sm text-dark-text placeholder-dark-text/30 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition"
+            placeholder="Opcional"
+          />
+        </div>
+
         {state.error && <p className="text-xs text-rose-600 pt-1">{state.error}</p>}
 
         <button

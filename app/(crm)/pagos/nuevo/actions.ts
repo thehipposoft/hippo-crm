@@ -26,6 +26,7 @@ export async function crearPago(
     proyecto_id: proyectoId,
     fecha,
     monto: Number(montoRaw),
+    moneda: formData.get('moneda')?.toString() || 'USD',
     medio_pago: formData.get('medio_pago')?.toString() || null,
     notas: formData.get('notas')?.toString() || null,
   }

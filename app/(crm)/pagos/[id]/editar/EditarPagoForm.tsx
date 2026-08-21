@@ -3,7 +3,7 @@
 import { useActionState } from 'react'
 import Link from 'next/link'
 import { actualizarPago, type EditarPagoState } from './actions'
-import { MEDIOS_PAGO, type PagoRow, type ProyectoRow } from '@/lib/types'
+import { MEDIOS_PAGO, MONEDAS, type PagoRow, type ProyectoRow } from '@/lib/types'
 
 const initialState: EditarPagoState = { error: null }
 
@@ -48,7 +48,7 @@ export const EditarPagoForm = ({ pago, proyectos }: EditarPagoFormProps) => {
           </select>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <div>
             <label htmlFor="fecha" className="block text-xs font-medium text-dark-text/60 mb-1.5">
               Fecha *
@@ -69,6 +69,17 @@ export const EditarPagoForm = ({ pago, proyectos }: EditarPagoFormProps) => {
               className="w-full rounded-lg bg-white border border-slate-200 px-3.5 py-2.5 text-sm text-dark-text placeholder-dark-text/30 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition"
               placeholder="0.00"
             />
+          </div>
+          <div>
+            <label htmlFor="moneda" className="block text-xs font-medium text-dark-text/60 mb-1.5">
+              Moneda
+            </label>
+            <select
+              id="moneda" name="moneda" defaultValue={pago.moneda}
+              className="w-full rounded-lg bg-white border border-slate-200 px-3.5 py-2.5 text-sm text-dark-text focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition"
+            >
+              {MONEDAS.map((m) => <option key={m} value={m}>{m}</option>)}
+            </select>
           </div>
         </div>
 

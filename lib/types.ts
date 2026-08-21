@@ -10,7 +10,13 @@ export type ClienteRow = {
   id: number
   nombre: string
   empresa: string | null
+  emailContacto: string | null
+  pais: string | null
 }
+
+export type TipoProyecto = 'ON_OFF' | 'RECURRENTE'
+
+export type FrecuenciaPago = 'SEMANAL' | 'MENSUAL' | 'ANUAL'
 
 export type ProyectoRow = {
   id: number
@@ -21,7 +27,14 @@ export type ProyectoRow = {
   fechaInicio: string | null
   deadline: string | null
   accionPendiente: string | null
+  tipoProyecto: TipoProyecto
+  valor: number
+  frecuenciaPago: FrecuenciaPago | null
+  montoPendiente: number
+  url: string | null
 }
+
+export type Moneda = 'USD' | 'ARS' | 'AUD' | 'EUR'
 
 export type PagoRow = {
   id: number
@@ -30,8 +43,19 @@ export type PagoRow = {
   clienteNombre: string | null
   fecha: string | null
   monto: number
+  moneda: Moneda
   medioPago: string | null
   notas: string | null
+}
+
+export type CostoRow = {
+  id: number
+  nombreCosto: string
+  monto: number
+  moneda: Moneda
+  metodoPago: string | null
+  frecuencia: FrecuenciaPago
+  fechaRenovacion: string | null
 }
 
 export const ESTADOS: { value: Estado; label: string }[] = [
@@ -44,3 +68,16 @@ export const ESTADOS: { value: Estado; label: string }[] = [
 ]
 
 export const MEDIOS_PAGO = ['Transferencia', 'Efectivo', 'Tarjeta', 'Cheque', 'Otro'] as const
+
+export const TIPOS_PROYECTO: { value: TipoProyecto; label: string }[] = [
+  { value: 'ON_OFF', label: 'On-off' },
+  { value: 'RECURRENTE', label: 'Recurrente' },
+]
+
+export const FRECUENCIAS_PAGO: { value: FrecuenciaPago; label: string }[] = [
+  { value: 'SEMANAL', label: 'Semanal' },
+  { value: 'MENSUAL', label: 'Mensual' },
+  { value: 'ANUAL', label: 'Anual' },
+]
+
+export const MONEDAS: Moneda[] = ['USD', 'ARS', 'AUD', 'EUR']

@@ -1,9 +1,9 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
 import Link from 'next/link'
 import { crearProyecto, type NuevoProyectoState } from './actions'
-import { ESTADOS, type ClienteRow } from '@/lib/types'
+import { ESTADOS, FRECUENCIAS_PAGO, TIPOS_PROYECTO, type ClienteRow, type TipoProyecto } from '@/lib/types'
 
 const initialState: NuevoProyectoState = { error: null }
 
@@ -13,6 +13,7 @@ interface NuevoProyectoFormProps {
 
 export const NuevoProyectoForm = ({ clientes }: NuevoProyectoFormProps) => {
   const [state, formAction, pending] = useActionState(crearProyecto, initialState)
+  const [tipoProyecto, setTipoProyecto] = useState<TipoProyecto>('ON_OFF')
 
   return (
     <div className="px-8 py-8 max-w-xl">
@@ -79,6 +80,68 @@ export const NuevoProyectoForm = ({ clientes }: NuevoProyectoFormProps) => {
               className="w-full rounded-lg bg-white border border-slate-200 px-3.5 py-2.5 text-sm text-dark-text focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition"
             />
           </div>
+        </div>
+
+        <div className={tipoProyecto === 'RECURRENTE' ? 'grid grid-cols-2 gap-4' : ''}>
+          <div>
+            <label htmlFor="tipo_proyecto" className="block text-xs font-medium text-dark-text/60 mb-1.5">
+              Tipo de proyecto
+            </label>
+            <select
+              id="tipo_proyecto" name="tipo_proyecto" value={tipoProyecto}
+              onChange={(e) => setTipoProyecto(e.target.value as TipoProyecto)}
+              className="w-full rounded-lg bg-white border border-slate-200 px-3.5 py-2.5 text-sm text-dark-text focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition"
+            >
+              {TIPOS_PROYECTO.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+            </select>
+          </div>
+          {tipoProyecto === 'RECURRENTE' && (
+            <div>
+              <label htmlFor="frecuencia_pago" className="block text-xs font-medium text-dark-text/60 mb-1.5">
+                Frecuencia de pago
+              </label>
+              <select
+                id="frecuencia_pago" name="frecuencia_pago" defaultValue="MENSUAL"
+                className="w-full rounded-lg bg-white border border-slate-200 px-3.5 py-2.5 text-sm text-dark-text focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition"
+              >
+                {FRECUENCIAS_PAGO.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
+              </select>
+            </div>
+          )}
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="valor" className="block text-xs font-medium text-dark-text/60 mb-1.5">
+              Valor
+            </label>
+            <input
+              id="valor" name="valor" type="number" step="0.01"
+              className="w-full rounded-lg bg-white border border-slate-200 px-3.5 py-2.5 text-sm text-dark-text placeholder-dark-text/30 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition"
+              placeholder="0.00"
+            />
+          </div>
+          <div>
+            <label htmlFor="monto_pendiente" className="block text-xs font-medium text-dark-text/60 mb-1.5">
+              Monto pendiente
+            </label>
+            <input
+              id="monto_pendiente" name="monto_pendiente" type="number" step="0.01"
+              className="w-full rounded-lg bg-white border border-slate-200 px-3.5 py-2.5 text-sm text-dark-text placeholder-dark-text/30 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition"
+              placeholder="0.00"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="url" className="block text-xs font-medium text-dark-text/60 mb-1.5">
+            URL
+          </label>
+          <input
+            id="url" name="url" type="url"
+            className="w-full rounded-lg bg-white border border-slate-200 px-3.5 py-2.5 text-sm text-dark-text placeholder-dark-text/30 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition"
+            placeholder="Opcional"
+          />
         </div>
 
         <div>

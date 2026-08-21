@@ -4,12 +4,20 @@ import Link from 'next/link'
 import { wpFetch } from '@/lib/wp'
 import { StatusBadge } from '@/components/proyectos/StatusBadge'
 import { PagosTable } from '@/components/pagos/PagosTable'
-import type { PagoRow, ProyectoRow } from '@/lib/types'
+import { FRECUENCIAS_PAGO, TIPOS_PROYECTO, type PagoRow, type ProyectoRow } from '@/lib/types'
 
 const formatDate = (iso: string | null): string => {
   if (!iso) return '—'
   return new Date(iso).toLocaleDateString('es-UY', { day: '2-digit', month: 'short', year: 'numeric' })
 }
+
+const formatMonto = (valor: number): string => `$${new Intl.NumberFormat('es-UY').format(valor)}`
+
+const labelTipoProyecto = (tipo: ProyectoRow['tipoProyecto']): string =>
+  TIPOS_PROYECTO.find((t) => t.value === tipo)?.label ?? tipo
+
+const labelFrecuenciaPago = (frecuencia: NonNullable<ProyectoRow['frecuenciaPago']>): string =>
+  FRECUENCIAS_PAGO.find((f) => f.value === frecuencia)?.label ?? frecuencia
 
 export default async function ProyectoDetallePage({
   params,
@@ -62,6 +70,27 @@ export default async function ProyectoDetallePage({
         </div>
         <Field label="Fecha de inicio" value={formatDate(proyecto.fechaInicio)} />
         <Field label="Deadline" value={formatDate(proyecto.deadline)} />
+        <Field label="Tipo de proyecto" value={labelTipoProyecto(proyecto.tipoProyecto)} />
+        <Field label="Valor" value={formatMonto(proyecto.valor)} />
+        {proyecto.tipoProyecto === 'RECURRENTE' && proyecto.frecuenciaPago && (
+          <Field label="Frecuencia de pago" value={labelFrecuenciaPago(proyecto.frecuenciaPago)} />
+        )}
+        <Field label="Monto pendiente" value={formatMonto(proyecto.montoPendiente)} />
+        <div className="flex items-center justify-between px-5 py-4">
+          <span className="text-xs font-medium text-dark-text/50 uppercase tracking-wider">URL</span>
+          {proyecto.url ? (
+            <a
+              href={proyecto.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-brand-blue hover:brightness-90 transition-colors truncate max-w-xs"
+            >
+              {proyecto.url}
+            </a>
+          ) : (
+            <span className="text-sm text-dark-text/40">—</span>
+          )}
+        </div>
         <div className="px-5 py-4">
           <span className="block text-xs font-medium text-dark-text/50 uppercase tracking-wider mb-1.5">
             Acción pendiente

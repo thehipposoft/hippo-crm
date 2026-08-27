@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useTransition } from 'react'
 import Link from 'next/link'
+import { eliminarPago } from '@/app/(crm)/pagos/[id]/actions'
 
 interface PagoRowActionsProps {
   pagoId: number
@@ -9,7 +10,18 @@ interface PagoRowActionsProps {
 
 export const PagoRowActions = ({ pagoId }: PagoRowActionsProps) => {
   const [open, setOpen] = useState(false)
+  const [isPending, startTransition] = useTransition()
   const ref = useRef<HTMLDivElement>(null)
+
+  const handleEliminar = () => {
+    setOpen(false)
+    if (!window.confirm('¿Eliminar este pago? Esta acción no se puede deshacer desde la app.')) return
+
+    startTransition(async () => {
+      const result = await eliminarPago(pagoId)
+      if (result?.error) window.alert(result.error)
+    })
+  }
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -57,6 +69,20 @@ export const PagoRowActions = ({ pagoId }: PagoRowActionsProps) => {
             </svg>
             Editar
           </Link>
+
+          <div className="my-1 border-t border-slate-200" />
+
+          <button
+            type="button"
+            onClick={handleEliminar}
+            disabled={isPending}
+            className="flex w-full items-center gap-2.5 px-3.5 py-2 text-sm text-rose-600 hover:bg-rose-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            {isPending ? 'Eliminando...' : 'Eliminar'}
+          </button>
         </div>
       )}
     </div>

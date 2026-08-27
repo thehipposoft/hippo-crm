@@ -1,8 +1,10 @@
 'use client'
 
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { PagoRow } from '@/lib/types'
 import { PagoRowActions } from './PagoRowActions'
+import { SearchInput } from '@/components/ui/SearchInput'
 
 const formatDate = (iso: string | null): string => {
   if (!iso) return '—'
@@ -19,6 +21,14 @@ const formatMonto = (monto: number, moneda: string | null | undefined): string =
 const truncate = (text: string, max: number): string =>
   text.length > max ? text.slice(0, max) + '…' : text
 
+const coincide = (pago: PagoRow, query: string): boolean => {
+  const q = query.trim().toLowerCase()
+  if (!q) return true
+  return [pago.proyectoNombre, pago.clienteNombre, pago.medioPago, pago.notas]
+    .filter((campo): campo is string => Boolean(campo))
+    .some((campo) => campo.toLowerCase().includes(q))
+}
+
 interface PagosTableProps {
   pagos: PagoRow[]
   mostrarProyecto?: boolean
@@ -26,7 +36,11 @@ interface PagosTableProps {
 
 export const PagosTable = ({ pagos, mostrarProyecto = true }: PagosTableProps) => {
   const router = useRouter()
-  const totalesPorMoneda = pagos.reduce<Record<string, number>>((acc, p) => {
+  const [busqueda, setBusqueda] = useState('')
+
+  const filtrados = pagos.filter((p) => coincide(p, busqueda))
+
+  const totalesPorMoneda = filtrados.reduce<Record<string, number>>((acc, p) => {
     acc[p.moneda] = (acc[p.moneda] ?? 0) + p.monto
     return acc
   }, {})
@@ -34,16 +48,19 @@ export const PagosTable = ({ pagos, mostrarProyecto = true }: PagosTableProps) =
 
   return (
     <div>
-      <p className="mb-5 text-sm text-dark-text/60">
-        Total:{' '}
-        <span className="font-medium text-dark-text">
-          {Object.keys(totalesPorMoneda).length === 0
-            ? '—'
-            : Object.entries(totalesPorMoneda)
-                .map(([moneda, monto]) => formatMonto(monto, moneda))
-                .join(' + ')}
-        </span>
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+        <p className="text-sm text-dark-text/60">
+          Total:{' '}
+          <span className="font-medium text-dark-text">
+            {Object.keys(totalesPorMoneda).length === 0
+              ? '—'
+              : Object.entries(totalesPorMoneda)
+                  .map(([moneda, monto]) => formatMonto(monto, moneda))
+                  .join(' + ')}
+          </span>
+        </p>
+        <SearchInput value={busqueda} onChange={setBusqueda} placeholder="Buscar por proyecto, cliente, notas..." />
+      </div>
 
       <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
         <table className="w-full text-sm">
@@ -73,17 +90,17 @@ export const PagosTable = ({ pagos, mostrarProyecto = true }: PagosTableProps) =
             </tr>
           </thead>
           <tbody>
-            {pagos.length === 0 ? (
+            {filtrados.length === 0 ? (
               <tr>
                 <td
                   colSpan={columnCount}
                   className="px-5 py-14 text-center text-sm text-dark-text/40"
                 >
-                  No hay pagos registrados todavía.
+                  {pagos.length === 0 ? 'No hay pagos registrados todavía.' : 'No se encontraron pagos.'}
                 </td>
               </tr>
             ) : (
-              pagos.map((pago) => (
+              filtrados.map((pago) => (
                 <tr
                   key={pago.id}
                   onClick={() => router.push(`/pagos/${pago.id}`)}

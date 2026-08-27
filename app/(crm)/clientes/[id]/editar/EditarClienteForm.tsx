@@ -30,21 +30,32 @@ export const EditarClienteForm = ({ cliente }: EditarClienteFormProps) => {
       <form action={formAction} className="space-y-4">
         <div>
           <label htmlFor="nombre" className="block text-xs font-medium text-dark-text/60 mb-1.5">
-            Nombre *
+            Nombre de la empresa *
           </label>
           <input
             id="nombre" name="nombre" type="text" required defaultValue={cliente.nombre}
             className="w-full rounded-lg bg-white border border-slate-200 px-3.5 py-2.5 text-sm text-dark-text placeholder-dark-text/30 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition"
-            placeholder="Nombre del cliente"
+            placeholder="Ej: Acme Inc."
           />
         </div>
 
         <div>
-          <label htmlFor="empresa" className="block text-xs font-medium text-dark-text/60 mb-1.5">
-            Empresa
+          <label htmlFor="contacto" className="block text-xs font-medium text-dark-text/60 mb-1.5">
+            Contacto
           </label>
           <input
-            id="empresa" name="empresa" type="text" defaultValue={cliente.empresa ?? ''}
+            id="contacto" name="contacto" type="text" defaultValue={cliente.contacto ?? ''}
+            className="w-full rounded-lg bg-white border border-slate-200 px-3.5 py-2.5 text-sm text-dark-text placeholder-dark-text/30 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition"
+            placeholder="Nombre de la persona de contacto"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="telefono" className="block text-xs font-medium text-dark-text/60 mb-1.5">
+            Teléfono
+          </label>
+          <input
+            id="telefono" name="telefono" type="tel" defaultValue={cliente.telefono ?? ''}
             className="w-full rounded-lg bg-white border border-slate-200 px-3.5 py-2.5 text-sm text-dark-text placeholder-dark-text/30 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition"
             placeholder="Opcional"
           />

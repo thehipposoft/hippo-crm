@@ -9,7 +9,8 @@ export type Estado =
 export type ClienteRow = {
   id: number
   nombre: string
-  empresa: string | null
+  contacto: string | null
+  telefono: string | null
   emailContacto: string | null
   pais: string | null
 }
@@ -30,7 +31,6 @@ export type ProyectoRow = {
   tipoProyecto: TipoProyecto
   valor: number
   frecuenciaPago: FrecuenciaPago | null
-  montoPendiente: number
   url: string | null
 }
 

@@ -41,7 +41,8 @@ export default async function ClienteDetallePage({
       </div>
 
       <div className="rounded-xl border border-slate-200 bg-white divide-y divide-slate-100 mb-8">
-        <Field label="Empresa" value={cliente.empresa ?? '—'} />
+        <Field label="Contacto" value={cliente.contacto ?? '—'} />
+        <Field label="Teléfono" value={cliente.telefono ?? '—'} />
         <Field label="Email" value={cliente.emailContacto ?? '—'} />
         <Field label="País" value={cliente.pais ?? '—'} />
       </div>

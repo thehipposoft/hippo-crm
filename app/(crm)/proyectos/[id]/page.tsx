@@ -36,6 +36,7 @@ export default async function ProyectoDetallePage({
   }
 
   const pagos = await wpFetch<PagoRow[]>(`/proyectos/${id}/pagos`, token)
+  const montoPendiente = proyecto.valor - pagos.reduce((suma, p) => suma + p.monto, 0)
 
   return (
     <div className="px-8 py-8 max-w-2xl">
@@ -75,7 +76,7 @@ export default async function ProyectoDetallePage({
         {proyecto.tipoProyecto === 'RECURRENTE' && proyecto.frecuenciaPago && (
           <Field label="Frecuencia de pago" value={labelFrecuenciaPago(proyecto.frecuenciaPago)} />
         )}
-        <Field label="Monto pendiente" value={formatMonto(proyecto.montoPendiente)} />
+        <Field label="Monto pendiente" value={formatMonto(montoPendiente)} />
         <div className="flex items-center justify-between px-5 py-4">
           <span className="text-xs font-medium text-dark-text/50 uppercase tracking-wider">URL</span>
           {proyecto.url ? (

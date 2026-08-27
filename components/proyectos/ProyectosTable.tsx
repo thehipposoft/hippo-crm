@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import type { ProyectoRow, Estado, FrecuenciaPago } from '@/lib/types'
 import { StatusBadge } from './StatusBadge'
 import { ProyectoRowActions } from './ProyectoRowActions'
+import { SearchInput } from '@/components/ui/SearchInput'
 
 const FILTROS: { label: string; value: Estado | 'TODOS' }[] = [
   { label: 'Todos', value: 'TODOS' },
@@ -42,6 +43,23 @@ const formatValor = (proyecto: ProyectoRow): string => {
   return monto
 }
 
+const ORDEN_ESTADO: Record<Estado, number> = {
+  ACTIVO: 0,
+  EN_NEGOCIACION: 1,
+  EN_PAUSA: 2,
+  PROSPECTO: 3,
+  CERRADO: 4,
+  PERDIDO: 5,
+}
+
+const coincide = (proyecto: ProyectoRow, query: string): boolean => {
+  const q = query.trim().toLowerCase()
+  if (!q) return true
+  return [proyecto.nombre, proyecto.clienteNombre]
+    .filter((campo): campo is string => Boolean(campo))
+    .some((campo) => campo.toLowerCase().includes(q))
+}
+
 interface ProyectosTableProps {
   proyectos: ProyectoRow[]
   mostrarCliente?: boolean
@@ -50,29 +68,35 @@ interface ProyectosTableProps {
 export const ProyectosTable = ({ proyectos, mostrarCliente = true }: ProyectosTableProps) => {
   const router = useRouter()
   const [filtro, setFiltro] = useState<Estado | 'TODOS'>('TODOS')
+  const [busqueda, setBusqueda] = useState('')
 
-  const filtered =
-    filtro === 'TODOS' ? proyectos : proyectos.filter((p) => p.estado === filtro)
+  const filtered = proyectos
+    .filter((p) => filtro === 'TODOS' || p.estado === filtro)
+    .filter((p) => coincide(p, busqueda))
+    .sort((a, b) => ORDEN_ESTADO[a.estado] - ORDEN_ESTADO[b.estado])
 
   const columnCount = mostrarCliente ? 7 : 6
 
   return (
     <div>
-      {/* Filter pills */}
-      <div className="flex flex-wrap gap-2 mb-5">
-        {FILTROS.map(({ label, value }) => (
-          <button
-            key={value}
-            onClick={() => setFiltro(value)}
-            className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${
-              filtro === value
-                ? 'bg-brand-blue text-white'
-                : 'bg-white border border-slate-200 text-dark-text/60 hover:bg-brand-blue/10 hover:text-dark-text'
-            }`}
-          >
-            {label}
-          </button>
-        ))}
+      {/* Filter pills + search */}
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+        <div className="flex flex-wrap gap-2">
+          {FILTROS.map(({ label, value }) => (
+            <button
+              key={value}
+              onClick={() => setFiltro(value)}
+              className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${
+                filtro === value
+                  ? 'bg-brand-blue text-white'
+                  : 'bg-white border border-slate-200 text-dark-text/60 hover:bg-brand-blue/10 hover:text-dark-text'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <SearchInput value={busqueda} onChange={setBusqueda} placeholder="Buscar por nombre o cliente..." />
       </div>
 
       {/* Table */}

@@ -19,7 +19,8 @@ export async function actualizarCliente(
 
   const payload = {
     nombre,
-    empresa: formData.get('empresa')?.toString() || null,
+    contacto: formData.get('contacto')?.toString() || null,
+    telefono: formData.get('telefono')?.toString() || null,
     email_contacto: formData.get('email_contacto')?.toString() || null,
     pais: formData.get('pais')?.toString() || null,
   }

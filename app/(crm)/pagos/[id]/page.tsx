@@ -2,6 +2,7 @@ import { cookies } from 'next/headers'
 import { notFound, unstable_rethrow } from 'next/navigation'
 import Link from 'next/link'
 import { wpFetch } from '@/lib/wp'
+import { EliminarPagoButton } from '@/components/pagos/EliminarPagoButton'
 import type { PagoRow } from '@/lib/types'
 
 const formatDate = (iso: string | null): string => {
@@ -39,12 +40,15 @@ export default async function PagoDetallePage({
             {formatMonto(pago.monto, pago.moneda)}
           </h1>
         </div>
-        <Link
-          href={`/pagos/${pago.id}/editar`}
-          className="rounded-lg border border-slate-200 bg-white hover:bg-brand-blue/10 px-4 py-2 text-sm font-medium text-dark-text transition-colors"
-        >
-          Editar
-        </Link>
+        <div className="flex items-start gap-2">
+          <Link
+            href={`/pagos/${pago.id}/editar`}
+            className="rounded-lg border border-slate-200 bg-white hover:bg-brand-blue/10 px-4 py-2 text-sm font-medium text-dark-text transition-colors"
+          >
+            Editar
+          </Link>
+          <EliminarPagoButton pagoId={pago.id} />
+        </div>
       </div>
 
       <div className="rounded-xl border border-slate-200 bg-white divide-y divide-slate-100">

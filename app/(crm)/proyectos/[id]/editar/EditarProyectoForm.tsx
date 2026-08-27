@@ -121,27 +121,15 @@ export const EditarProyectoForm = ({ proyecto, clientes }: EditarProyectoFormPro
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="valor" className="block text-xs font-medium text-dark-text/60 mb-1.5">
-              Valor
-            </label>
-            <input
-              id="valor" name="valor" type="number" step="0.01" defaultValue={proyecto.valor}
-              className="w-full rounded-lg bg-white border border-slate-200 px-3.5 py-2.5 text-sm text-dark-text placeholder-dark-text/30 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition"
-              placeholder="0.00"
-            />
-          </div>
-          <div>
-            <label htmlFor="monto_pendiente" className="block text-xs font-medium text-dark-text/60 mb-1.5">
-              Monto pendiente
-            </label>
-            <input
-              id="monto_pendiente" name="monto_pendiente" type="number" step="0.01" defaultValue={proyecto.montoPendiente}
-              className="w-full rounded-lg bg-white border border-slate-200 px-3.5 py-2.5 text-sm text-dark-text placeholder-dark-text/30 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition"
-              placeholder="0.00"
-            />
-          </div>
+        <div>
+          <label htmlFor="valor" className="block text-xs font-medium text-dark-text/60 mb-1.5">
+            Valor
+          </label>
+          <input
+            id="valor" name="valor" type="number" step="0.01" defaultValue={proyecto.valor}
+            className="w-full rounded-lg bg-white border border-slate-200 px-3.5 py-2.5 text-sm text-dark-text placeholder-dark-text/30 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition"
+            placeholder="0.00"
+          />
         </div>
 
         <div>

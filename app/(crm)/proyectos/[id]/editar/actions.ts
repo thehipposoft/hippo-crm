@@ -32,7 +32,6 @@ export async function actualizarProyecto(
     tipo_proyecto: tipoProyecto,
     valor: Number(formData.get('valor')?.toString() || 0),
     frecuencia_pago: tipoProyecto === 'RECURRENTE' ? formData.get('frecuencia_pago')?.toString() || 'MENSUAL' : null,
-    monto_pendiente: Number(formData.get('monto_pendiente')?.toString() || 0),
     url: formData.get('url')?.toString() || null,
   }
 

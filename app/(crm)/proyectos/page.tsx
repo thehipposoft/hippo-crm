@@ -2,13 +2,16 @@ import Link from 'next/link'
 import { cookies } from 'next/headers'
 import { wpFetch } from '@/lib/wp'
 import { ProyectosTable } from '@/components/proyectos/ProyectosTable'
-import type { ProyectoRow } from '@/lib/types'
+import type { PagoRow, ProyectoRow } from '@/lib/types'
 
 export default async function ProyectosPage() {
   const cookieStore = await cookies()
   const token = cookieStore.get('hippo_token')?.value
 
-  const proyectos = await wpFetch<ProyectoRow[]>('/proyectos', token)
+  const [proyectos, pagos] = await Promise.all([
+    wpFetch<ProyectoRow[]>('/proyectos', token),
+    wpFetch<PagoRow[]>('/pagos', token),
+  ])
 
   return (
     <div className="px-8 py-8">
@@ -31,7 +34,7 @@ export default async function ProyectosPage() {
         </Link>
       </div>
 
-      <ProyectosTable proyectos={proyectos} />
+      <ProyectosTable proyectos={proyectos} pagos={pagos} />
     </div>
   )
 }

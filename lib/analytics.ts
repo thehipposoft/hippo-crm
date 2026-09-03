@@ -26,8 +26,19 @@ export function pagosEsteMes(pagos: PagoRow[]): Record<Moneda, number> {
   return agruparPorMoneda(pagos.filter((p) => esEsteMes(p.fecha)))
 }
 
+// Un costo mensual/semanal se paga todos los meses. Uno anual solo cuenta en su
+// mes de renovación (comparando el mes de fechaRenovacion, no el año, para que
+// se repita cada año sin que haga falta actualizar la fecha a mano).
+function costoAplicaEsteMes(costo: CostoRow): boolean {
+  if (costo.frecuencia === 'ANUAL') {
+    if (!costo.fechaRenovacion) return false
+    return new Date(costo.fechaRenovacion).getMonth() === new Date().getMonth()
+  }
+  return true
+}
+
 export function costosEsteMes(costos: CostoRow[]): Record<Moneda, number> {
-  return agruparPorMoneda(costos.filter((c) => esEsteMes(c.fechaRenovacion)))
+  return agruparPorMoneda(costos.filter(costoAplicaEsteMes))
 }
 
 export function resultadoParcial(pagos: PagoRow[], costos: CostoRow[]): Partial<Record<Moneda, number>> {

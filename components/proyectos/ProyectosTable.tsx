@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import type { ProyectoRow, Estado, FrecuenciaPago } from '@/lib/types'
+import type { ProyectoRow, Estado, FrecuenciaPago, PagoRow } from '@/lib/types'
 import { StatusBadge } from './StatusBadge'
 import { ProyectoRowActions } from './ProyectoRowActions'
 import { SearchInput } from '@/components/ui/SearchInput'
@@ -17,15 +17,6 @@ const FILTROS: { label: string; value: Estado | 'TODOS' }[] = [
   { label: 'Perdido', value: 'PERDIDO' },
 ]
 
-const formatDate = (iso: string | null): string => {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('es-UY', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  })
-}
-
 const truncate = (text: string, max: number): string =>
   text.length > max ? text.slice(0, max) + '…' : text
 
@@ -35,13 +26,18 @@ const FRECUENCIA_SUFIJO: Record<FrecuenciaPago, string> = {
   ANUAL: '/ año',
 }
 
+const formatMonto = (monto: number): string => `$${new Intl.NumberFormat('es-UY').format(monto)}`
+
 const formatValor = (proyecto: ProyectoRow): string => {
-  const monto = `$${new Intl.NumberFormat('es-UY').format(proyecto.valor)}`
+  const monto = formatMonto(proyecto.valor)
   if (proyecto.tipoProyecto === 'RECURRENTE' && proyecto.frecuenciaPago) {
     return `${monto} ${FRECUENCIA_SUFIJO[proyecto.frecuenciaPago]}`
   }
   return monto
 }
+
+const montoPendiente = (proyecto: ProyectoRow, pagos: PagoRow[]): number =>
+  proyecto.valor - pagos.filter((p) => p.proyectoId === proyecto.id).reduce((suma, p) => suma + p.monto, 0)
 
 const ORDEN_ESTADO: Record<Estado, number> = {
   ACTIVO: 0,
@@ -62,10 +58,11 @@ const coincide = (proyecto: ProyectoRow, query: string): boolean => {
 
 interface ProyectosTableProps {
   proyectos: ProyectoRow[]
+  pagos: PagoRow[]
   mostrarCliente?: boolean
 }
 
-export const ProyectosTable = ({ proyectos, mostrarCliente = true }: ProyectosTableProps) => {
+export const ProyectosTable = ({ proyectos, pagos, mostrarCliente = true }: ProyectosTableProps) => {
   const router = useRouter()
   const [filtro, setFiltro] = useState<Estado | 'TODOS'>('TODOS')
   const [busqueda, setBusqueda] = useState('')
@@ -116,10 +113,10 @@ export const ProyectosTable = ({ proyectos, mostrarCliente = true }: ProyectosTa
                 Estado
               </th>
               <th className="px-5 py-3.5 text-left text-xs font-medium text-dark-text/50 uppercase tracking-wider">
-                Fecha de inicio
+                Valor
               </th>
               <th className="px-5 py-3.5 text-left text-xs font-medium text-dark-text/50 uppercase tracking-wider">
-                Valor
+                Monto pendiente
               </th>
               <th className="px-5 py-3.5 text-left text-xs font-medium text-dark-text/50 uppercase tracking-wider">
                 Acción pendiente
@@ -158,10 +155,10 @@ export const ProyectosTable = ({ proyectos, mostrarCliente = true }: ProyectosTa
                     <StatusBadge estado={proyecto.estado} />
                   </td>
                   <td className="px-5 py-4 text-dark-text/60 tabular-nums">
-                    {formatDate(proyecto.fechaInicio)}
+                    {formatValor(proyecto)}
                   </td>
                   <td className="px-5 py-4 text-dark-text/60 tabular-nums">
-                    {formatValor(proyecto)}
+                    {formatMonto(montoPendiente(proyecto, pagos))}
                   </td>
                   <td className="px-5 py-4 max-w-xs text-dark-text/60">
                     {proyecto.accionPendiente ? truncate(proyecto.accionPendiente, 60) : '—'}

@@ -3,7 +3,7 @@ import { notFound, unstable_rethrow } from 'next/navigation'
 import Link from 'next/link'
 import { wpFetch } from '@/lib/wp'
 import { ProyectosTable } from '@/components/proyectos/ProyectosTable'
-import type { ClienteRow, ProyectoRow } from '@/lib/types'
+import type { ClienteRow, PagoRow, ProyectoRow } from '@/lib/types'
 
 export default async function ClienteDetallePage({
   params,
@@ -21,7 +21,10 @@ export default async function ClienteDetallePage({
     notFound()
   }
 
-  const proyectos = await wpFetch<ProyectoRow[]>(`/clientes/${id}/proyectos`, token)
+  const [proyectos, pagos] = await Promise.all([
+    wpFetch<ProyectoRow[]>(`/clientes/${id}/proyectos`, token),
+    wpFetch<PagoRow[]>('/pagos', token),
+  ])
 
   return (
     <div className="px-8 py-8 max-w-2xl">
@@ -48,7 +51,7 @@ export default async function ClienteDetallePage({
       </div>
 
       <h2 className="mb-4 text-sm font-semibold text-dark-text">Proyectos</h2>
-      <ProyectosTable proyectos={proyectos} mostrarCliente={false} />
+      <ProyectosTable proyectos={proyectos} pagos={pagos} mostrarCliente={false} />
     </div>
   )
 }

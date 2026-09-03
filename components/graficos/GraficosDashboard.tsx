@@ -1,12 +1,13 @@
 'use client'
 
-import { pagosPorCliente, pagosPorMes, proyectosPorEstado } from '@/lib/analytics'
+import { gastosDelMes, pagosPorCliente, pagosPorMes, proyectosPorEstado } from '@/lib/analytics'
 import type { CostoRow, PagoRow, ProyectoRow } from '@/lib/types'
 import { PerformanceCards } from './PerformanceCards'
 import { TotalHistoricoCards } from './TotalHistoricoCards'
 import { PagosPorMesChart } from './PagosPorMesChart'
 import { PagosPorClienteChart } from './PagosPorClienteChart'
 import { ProyectosPorEstadoChart } from './ProyectosPorEstadoChart'
+import { GastosDelMesChart } from './GastosDelMesChart'
 
 interface GraficosDashboardProps {
   pagos: PagoRow[]
@@ -18,6 +19,7 @@ export const GraficosDashboard = ({ pagos, costos, proyectos }: GraficosDashboar
   const dataPorMes = pagosPorMes(pagos)
   const dataPorCliente = pagosPorCliente(pagos)
   const dataPorEstado = proyectosPorEstado(proyectos)
+  const dataGastosDelMes = gastosDelMes(costos)
 
   return (
     <div className="space-y-6">
@@ -31,6 +33,8 @@ export const GraficosDashboard = ({ pagos, costos, proyectos }: GraficosDashboar
       <PagosPorClienteChart data={dataPorCliente} />
 
       <TotalHistoricoCards pagos={pagos} />
+
+      <GastosDelMesChart data={dataGastosDelMes} />
     </div>
   )
 }

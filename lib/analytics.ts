@@ -26,19 +26,31 @@ export function pagosEsteMes(pagos: PagoRow[]): Record<Moneda, number> {
   return agruparPorMoneda(pagos.filter((p) => esEsteMes(p.fecha)))
 }
 
-// Un costo mensual/semanal se paga todos los meses. Uno anual solo cuenta en su
-// mes de renovación (comparando el mes de fechaRenovacion, no el año, para que
-// se repita cada año sin que haga falta actualizar la fecha a mano).
-function costoAplicaEsteMes(costo: CostoRow): boolean {
-  if (costo.frecuencia === 'ANUAL') {
-    if (!costo.fechaRenovacion) return false
-    return new Date(costo.fechaRenovacion).getMonth() === new Date().getMonth()
-  }
-  return true
+const MESES_POR_ANIO = 12
+
+// Costo mensualizado: mensual/semanal aportan su monto completo cada mes; uno
+// anual se prorratea (monto / 12) para reflejar su impacto mensual promedio.
+function costoMensualizado(costo: CostoRow): number {
+  if (costo.frecuencia === 'ANUAL') return costo.monto / MESES_POR_ANIO
+  return costo.monto
 }
 
 export function costosEsteMes(costos: CostoRow[]): Record<Moneda, number> {
-  return agruparPorMoneda(costos.filter(costoAplicaEsteMes))
+  const aportes = costos.map((c) => ({ monto: costoMensualizado(c), moneda: c.moneda }))
+  return agruparPorMoneda(aportes)
+}
+
+export function gastosDelMes(costos: CostoRow[]): Array<{ nombre: string } & Record<Moneda, number>> {
+  return costos
+    .map((c) => ({
+      nombre: c.nombreCosto,
+      ...agruparPorMoneda([{ monto: costoMensualizado(c), moneda: c.moneda }]),
+    }))
+    .sort((a, b) => {
+      const totalA = MONEDAS.reduce((sum, m) => sum + a[m], 0)
+      const totalB = MONEDAS.reduce((sum, m) => sum + b[m], 0)
+      return totalB - totalA
+    })
 }
 
 export function resultadoParcial(pagos: PagoRow[], costos: CostoRow[]): Partial<Record<Moneda, number>> {

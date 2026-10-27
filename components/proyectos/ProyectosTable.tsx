@@ -9,7 +9,7 @@ import { SaldoProyecto } from './SaldoProyecto'
 import { SearchInput } from '@/components/ui/SearchInput'
 import { ContenedorTabla, FilaTabla } from '@/components/ui/FilaTabla'
 import { ThOrdenable, useOrdenTabla } from '@/components/ui/Orden'
-import { formatFecha, formatMonto, SUFIJO_FRECUENCIA } from '@/lib/format'
+import { formatCuota, formatFecha, formatMonto } from '@/lib/format'
 import { claveFecha, type ColumnaOrden } from '@/lib/orden'
 import { resumenPendiente, type ResumenPendiente } from '@/lib/proyectos'
 
@@ -23,13 +23,8 @@ const FILTROS: { label: string; value: Estado | 'TODOS' }[] = [
   { label: 'Perdido', value: 'PERDIDO' },
 ]
 
-const formatValor = (proyecto: ProyectoRow, resumen: ResumenPendiente): string => {
-  const monto = formatMonto(proyecto.valor, resumen.moneda)
-  if (proyecto.tipoProyecto === 'RECURRENTE' && proyecto.frecuenciaPago) {
-    return `${monto} ${SUFIJO_FRECUENCIA[proyecto.frecuenciaPago]}`
-  }
-  return monto
-}
+const formatValor = (proyecto: ProyectoRow, resumen: ResumenPendiente): string =>
+  formatCuota(proyecto.valor, resumen.moneda, proyecto)
 
 const formatOtrasMonedas = (resumen: ResumenPendiente): string | null => {
   const lineas = Object.entries(resumen.otrasMonedas).map(([moneda, monto]) => formatMonto(monto, moneda))

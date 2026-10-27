@@ -48,6 +48,19 @@ export type ProyectoRow = {
   url: string | null
   // Pendiente en WordPress: hasta que lo devuelva, se infiere de los pagos
   moneda?: Moneda | null
+  // Cobro por unidad (ej. 'casilla'): valor = precio por unidad por mes. null = cobro normal
+  unidad?: string | null
+  unidades?: UnidadRow[]
+}
+
+// Unidad cobrada por mes dentro de un proyecto (ej. una casilla de correo)
+export type UnidadRow = {
+  id: number
+  proyectoId: number
+  nombre: string
+  fechaAlta: string | null
+  fechaBaja: string | null
+  notas: string | null
 }
 
 export type PagoRow = {

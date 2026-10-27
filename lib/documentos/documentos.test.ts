@@ -78,3 +78,32 @@ describe('armarEstadoDeCuenta', () => {
     expect(estado.proximos.map((c) => c.proyecto.id)).toEqual([3])
   })
 })
+
+describe('estado de cuenta con cobro por unidad', () => {
+  it('detalle de casillas: últimos meses y activas este mes', async () => {
+    const { porCasilla, unidad } = await import('@/lib/test-utils')
+    const proyecto = porCasilla([
+      unidad({ id: 1, nombre: 'ana@acme.com', fechaAlta: '2026-01-01' }),
+      unidad({ id: 2, nombre: 'juan@acme.com', fechaAlta: '2026-01-01', fechaBaja: '2026-05-31' }),
+    ])
+    const estado = armarEstadoDeCuenta([proyecto], [], HOY)
+    expect(estado.unidades).toHaveLength(1)
+    const [detalle] = estado.unidades
+    expect(detalle.meses).toHaveLength(10)
+    expect(detalle.meses[0]).toMatchObject({ activas: 1, monto: 5 })
+    expect(detalle.meses.at(-1)).toMatchObject({ activas: 2, monto: 10 })
+    expect(detalle.activasEsteMes.map((u) => u.nombre)).toEqual(['ana@acme.com'])
+    // 2×5 meses + 1×5 meses = 15 casilla-mes × 5
+    expect(estado.totales.USD?.adeudado).toBe(75)
+  })
+
+  it('traduce el nombre de la unidad', async () => {
+    const { unidadDoc, mesDoc } = await import('./idioma')
+    expect(unidadDoc('casilla', 'en', true)).toBe('mailboxes')
+    expect(unidadDoc('casilla', 'es', true)).toBe('casillas')
+    expect(unidadDoc('licencia', 'en')).toBe('license')
+    expect(unidadDoc('cuenta', 'en', true)).toBe('cuentas')
+    expect(mesDoc(fecha(2026, 10, 1), 'en')).toBe('October 2026')
+    expect(mesDoc(fecha(2026, 10, 1), 'es')).toBe('Octubre de 2026')
+  })
+})

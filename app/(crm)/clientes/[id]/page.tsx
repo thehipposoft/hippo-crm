@@ -5,7 +5,7 @@ import { ProyectosTable } from '@/components/proyectos/ProyectosTable'
 import { SaldoProyecto } from '@/components/proyectos/SaldoProyecto'
 import { resumenCliente, ULTIMOS_PAGOS } from '@/lib/clientes'
 import { diasEntre, hoy } from '@/lib/fechas'
-import { formatFecha, formatMonto, SUFIJO_FRECUENCIA } from '@/lib/format'
+import { formatCuota, formatFecha, formatMonto } from '@/lib/format'
 import type { ClienteRow, PagoRow, ProyectoRow } from '@/lib/types'
 import { wpGet, wpGetONotFound } from '@/lib/wp'
 
@@ -94,7 +94,7 @@ export default async function ClienteDetallePage({ params }: { params: Promise<{
                     titulo={proyecto.nombre}
                     detalle={
                       <>
-                        {formatMonto(proyecto.valor, r.moneda)} {SUFIJO_FRECUENCIA[proyecto.frecuenciaPago ?? 'MENSUAL']} ·{' '}
+                        {formatCuota(proyecto.valor, r.moneda, proyecto)} ·{' '}
                         <SaldoProyecto resumen={r} />
                       </>
                     }

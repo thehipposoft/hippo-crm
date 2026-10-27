@@ -45,6 +45,7 @@ components/
                                 en pagos y proyectos)
   graficos/                   → charts (Recharts) y cards del tablero
   home/                       → HomeDashboard
+  unidades/                   → SeccionUnidades (ficha del proyecto), ListaUnidades, formularios
   documentos/                 → HojaDocumento, BarraDocumento, Recibo, EstadoDeCuentaDoc
 
 lib/
@@ -65,6 +66,7 @@ lib/
   periodos.ts                 → períodos de fechas (este mes, año pasado, rango…)
   csv.ts                      → exportar CSV (;  coma decimal, BOM)
   clientes.ts                 → resumen financiero del cliente
+  unidades.ts                 → cobro por unidad: activas por mes, meses facturables, adeudado
   empresa.ts                  → datos del emisor en recibos y estados de cuenta
   publico.ts                  → datos del link público (token)
   documentos/                 → idioma (es/en), textos y armado del estado de cuenta

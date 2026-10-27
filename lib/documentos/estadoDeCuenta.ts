@@ -9,11 +9,23 @@ import {
   type ResumenPendiente,
   type Saldo,
 } from '@/lib/proyectos'
-import type { Moneda, PagoRow, ProyectoRow } from '@/lib/types'
+import type { Moneda, PagoRow, ProyectoRow, UnidadRow } from '@/lib/types'
+import { activasEn, cobraPorUnidad, detallePorMes, type MesUnidades } from '@/lib/unidades'
 
 export type LineaProyecto = { proyecto: ProyectoRow; resumen: ResumenPendiente; saldo: Saldo }
 
 export type TotalMoneda = { adeudado: number; pagado: number; saldo: number }
+
+// Últimos meses que se muestran en el detalle por unidad
+export const MESES_DETALLE_UNIDADES = 12
+
+export type DetalleUnidades = {
+  proyecto: ProyectoRow
+  moneda: Moneda
+  // Más reciente primero
+  meses: MesUnidades[]
+  activasEsteMes: UnidadRow[]
+}
 
 export type EstadoDeCuenta = {
   proyectos: LineaProyecto[]
@@ -22,6 +34,7 @@ export type EstadoDeCuenta = {
   movimientos: PagoRow[]
   proximos: (CobroRecurrente & { proximoVencimiento: FechaCalendario })[]
   hayOtrasMonedas: boolean
+  unidades: DetalleUnidades[]
 }
 
 // Solo proyectos facturables (activos, en pausa o cerrados): un presupuesto no es deuda
@@ -59,11 +72,21 @@ export const armarEstadoDeCuenta = (
       return cobro?.proximoVencimiento ? [{ ...cobro, proximoVencimiento: cobro.proximoVencimiento }] : []
     })
 
+  const unidades = lineas
+    .filter(({ proyecto }) => cobraPorUnidad(proyecto))
+    .map(({ proyecto, resumen }) => ({
+      proyecto,
+      moneda: resumen.moneda,
+      meses: detallePorMes(proyecto, fechaHoy).reverse().slice(0, MESES_DETALLE_UNIDADES),
+      activasEsteMes: activasEn(proyecto.unidades ?? [], fechaHoy),
+    }))
+
   return {
     proyectos: lineas,
     totales,
     movimientos,
     proximos,
+    unidades,
     hayOtrasMonedas: lineas.some((l) => Object.keys(l.resumen.otrasMonedas).length > 0),
   }
 }

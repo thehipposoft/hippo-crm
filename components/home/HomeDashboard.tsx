@@ -13,7 +13,7 @@ import {
   renovacionesProximas,
 } from '@/lib/dashboard'
 import { diasEntre, hoy } from '@/lib/fechas'
-import { formatFechaLarga, formatMonto, SUFIJO_FRECUENCIA } from '@/lib/format'
+import { formatCuota, formatFechaLarga, formatMonto, SUFIJO_FRECUENCIA } from '@/lib/format'
 import type { CostoRow, Moneda, PagoRow, ProyectoRow } from '@/lib/types'
 import { FechaRelativa, FilaLista, ListaSeccion, Seccion, TarjetaMontos } from '@/components/ui/Paneles'
 
@@ -110,7 +110,7 @@ export const HomeDashboard = ({ userName, proyectos, pagos, costos }: HomeDashbo
                 </tr>
               </thead>
               <tbody>
-                {recurrentes.map(({ proyecto, resumen, cuotasEsteMes, montoEsteMes, proximoVencimiento }) => (
+                {recurrentes.map(({ proyecto, resumen, cuotasEsteMes, montoEsteMes, proximoVencimiento, unidadesEsteMes }) => (
                   <tr key={proyecto.id} className="border-b border-slate-100 last:border-0">
                     <td className="px-5 py-3">
                       <Link href={`/proyectos/${proyecto.id}`} className="font-medium text-dark-text hover:text-brand-blue">
@@ -119,8 +119,7 @@ export const HomeDashboard = ({ userName, proyectos, pagos, costos }: HomeDashbo
                       <p className="text-xs text-dark-text/50">{proyecto.clienteNombre}</p>
                     </td>
                     <td className="px-5 py-3 text-dark-text/60 tabular-nums">
-                      {formatMonto(proyecto.valor, resumen.moneda)}{' '}
-                      {SUFIJO_FRECUENCIA[proyecto.frecuenciaPago ?? 'MENSUAL']}
+                      {formatCuota(proyecto.valor, resumen.moneda, proyecto)}
                     </td>
                     <td className="px-5 py-3 tabular-nums">
                       {cuotasEsteMes === 0 ? (
@@ -128,7 +127,15 @@ export const HomeDashboard = ({ userName, proyectos, pagos, costos }: HomeDashbo
                       ) : (
                         <>
                           {formatMonto(montoEsteMes, resumen.moneda)}
-                          {cuotasEsteMes > 1 && <span className="text-xs text-dark-text/50"> ({cuotasEsteMes} cuotas)</span>}
+                          {unidadesEsteMes !== null ? (
+                            <span className="text-xs text-dark-text/50">
+                              {' '}
+                              ({unidadesEsteMes} {proyecto.unidad}
+                              {unidadesEsteMes === 1 ? '' : 's'})
+                            </span>
+                          ) : (
+                            cuotasEsteMes > 1 && <span className="text-xs text-dark-text/50"> ({cuotasEsteMes} cuotas)</span>
+                          )}
                         </>
                       )}
                     </td>

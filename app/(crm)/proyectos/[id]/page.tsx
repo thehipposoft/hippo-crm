@@ -7,6 +7,8 @@ import { FRECUENCIAS_PAGO, TIPOS_PROYECTO, type FrecuenciaPago, type PagoRow, ty
 import { formatFecha, formatMonto } from '@/lib/format'
 import { resumenPendiente } from '@/lib/proyectos'
 import { SaldoProyecto } from '@/components/proyectos/SaldoProyecto'
+import { SeccionUnidades } from '@/components/unidades/SeccionUnidades'
+import { cobraPorUnidad } from '@/lib/unidades'
 
 const UNIDAD_PERIODO: Record<FrecuenciaPago, [string, string]> = {
   SEMANAL: ['semana', 'semanas'],
@@ -35,6 +37,7 @@ export default async function ProyectoDetallePage({
 
   const pagos = await wpGet<PagoRow[]>(`/proyectos/${id}/pagos`)
   const resumen = resumenPendiente(proyecto, pagos)
+  const porUnidad = cobraPorUnidad(proyecto)
   const otrasMonedas = Object.entries(resumen.otrasMonedas)
     .map(([moneda, monto]) => formatMonto(monto, moneda))
     .join(' + ')
@@ -73,7 +76,10 @@ export default async function ProyectoDetallePage({
         <Field label="Fecha de inicio" value={formatFecha(proyecto.fechaInicio)} />
         <Field label="Deadline" value={formatFecha(proyecto.deadline)} />
         <Field label="Tipo de proyecto" value={labelTipoProyecto(proyecto.tipoProyecto)} />
-        <Field label="Valor" value={formatMonto(proyecto.valor, resumen.moneda)} />
+        <Field
+          label={porUnidad ? 'Precio' : 'Valor'}
+          value={porUnidad ? `${formatMonto(proyecto.valor, resumen.moneda)} por ${proyecto.unidad} por mes` : formatMonto(proyecto.valor, resumen.moneda)}
+        />
         {proyecto.tipoProyecto === 'RECURRENTE' && proyecto.frecuenciaPago && (
           <Field label="Frecuencia de pago" value={labelFrecuenciaPago(proyecto.frecuenciaPago)} />
         )}
@@ -110,6 +116,8 @@ export default async function ProyectoDetallePage({
           </p>
         </div>
       </div>
+
+      {porUnidad && <SeccionUnidades proyecto={proyecto} moneda={resumen.moneda} />}
 
       <div className="mt-8 mb-4 flex items-center justify-between">
         <h2 className="text-sm font-semibold text-dark-text">Pagos</h2>

@@ -111,3 +111,10 @@ describe('accionesPendientes y datosIncompletos', () => {
     ])
   })
 })
+
+describe('datosIncompletos con cobro por unidad', () => {
+  it('avisa si no hay casillas cargadas, no por la fecha de inicio', () => {
+    const resultado = datosIncompletos([recurrente({ id: 1, unidad: 'casilla', fechaInicio: null, unidades: [] })])
+    expect(resultado.map((d) => d.motivo)).toEqual(['sin casillas cargadas'])
+  })
+})

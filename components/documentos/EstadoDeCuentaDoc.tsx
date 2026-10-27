@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { FechaCalendario } from '@/lib/fechas'
-import { fechaDoc, medioDoc, montoDoc, numeroRecibo, TEXTOS, type Idioma } from '@/lib/documentos/idioma'
+import { fechaDoc, medioDoc, mesDoc, montoDoc, numeroRecibo, TEXTOS, unidadDoc, type Idioma } from '@/lib/documentos/idioma'
 import type { EstadoDeCuenta } from '@/lib/documentos/estadoDeCuenta'
 import type { Saldo } from '@/lib/proyectos'
 import type { ClientePublico, Moneda } from '@/lib/types'
@@ -102,9 +102,11 @@ export const EstadoDeCuentaDoc = ({ cliente, estado, idioma, fechaEmision, hrefR
                   <tr key={proyecto.id} className="break-inside-avoid border-b border-slate-100">
                     <td className="py-2.5 pr-4">{proyecto.nombre}</td>
                     <td className="py-2.5 pr-4 text-dark-text/70">
-                      {proyecto.tipoProyecto === 'RECURRENTE'
-                        ? `${t.frecuencia[proyecto.frecuenciaPago ?? 'MENSUAL']} · ${montoDoc(proyecto.valor, resumen.moneda, idioma)} ${t.porPeriodo[proyecto.frecuenciaPago ?? 'MENSUAL']}`
-                        : t.pagoUnico}
+                      {proyecto.tipoProyecto !== 'RECURRENTE'
+                        ? t.pagoUnico
+                        : proyecto.unidad
+                          ? `${t.frecuencia.MENSUAL} · ${montoDoc(proyecto.valor, resumen.moneda, idioma)} / ${unidadDoc(proyecto.unidad, idioma)}`
+                          : `${t.frecuencia[proyecto.frecuenciaPago ?? 'MENSUAL']} · ${montoDoc(proyecto.valor, resumen.moneda, idioma)} ${t.porPeriodo[proyecto.frecuenciaPago ?? 'MENSUAL']}`}
                     </td>
                     <td className="whitespace-nowrap py-2.5 pl-4 text-right tabular-nums">{montoDoc(resumen.adeudado, resumen.moneda, idioma)}</td>
                     <td className="whitespace-nowrap py-2.5 pl-4 text-right tabular-nums">{montoDoc(resumen.pagado, resumen.moneda, idioma)}</td>
@@ -120,11 +122,48 @@ export const EstadoDeCuentaDoc = ({ cliente, estado, idioma, fechaEmision, hrefR
         {estado.hayOtrasMonedas && <p className="mt-2 text-xs text-dark-text/50">* {t.otrasMonedas}</p>}
       </section>
 
+      {estado.unidades.map(({ proyecto, moneda, meses, activasEsteMes }) => {
+        const plural = unidadDoc(proyecto.unidad ?? '', idioma, true)
+        return (
+          <section key={proyecto.id} className="mb-8 break-inside-avoid">
+            <Etiqueta>
+              {t.detalleDe} {plural} · {proyecto.nombre}
+            </Etiqueta>
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-200">
+                  <th className={CLASES_TH}>{t.mes}</th>
+                  <th className={CLASES_TH_DER}>{t.activas}</th>
+                  <th className={CLASES_TH_DER}>{t.importe}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {meses.map((m) => (
+                  <tr key={`${m.mes.anio}-${m.mes.mes}`} className="border-b border-slate-100">
+                    <td className="py-2 pr-4">{mesDoc(m.mes, idioma)}</td>
+                    <td className="py-2 text-right tabular-nums">{m.activas}</td>
+                    <td className="whitespace-nowrap py-2 pl-4 text-right tabular-nums">{montoDoc(m.monto, moneda, idioma)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {activasEsteMes.length > 0 && (
+              <p className="mt-3 text-xs leading-relaxed text-dark-text/60">
+                <span className="font-medium text-dark-text/80">
+                  {t.activasEsteMes} ({activasEsteMes.length}):
+                </span>{' '}
+                {activasEsteMes.map((u) => u.nombre).join(', ')}
+              </p>
+            )}
+          </section>
+        )
+      })}
+
       {estado.proximos.length > 0 && (
         <section className="mb-8 break-inside-avoid">
           <Etiqueta>{t.proximosVencimientos}</Etiqueta>
           <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
-            {estado.proximos.map(({ proyecto, resumen, proximoVencimiento }) => (
+            {estado.proximos.map(({ proyecto, resumen, proximoVencimiento, unidadesEsteMes }) => (
               <li key={proyecto.id} className="flex flex-wrap justify-between gap-2 px-4 py-2.5">
                 <span>
                   {proyecto.nombre}{' '}
@@ -133,7 +172,7 @@ export const EstadoDeCuentaDoc = ({ cliente, estado, idioma, fechaEmision, hrefR
                   </span>
                 </span>
                 <span className="tabular-nums">
-                  {t.cuota}: {montoDoc(proyecto.valor, resumen.moneda, idioma)}
+                  {t.cuota}: {montoDoc((unidadesEsteMes ?? 1) * proyecto.valor, resumen.moneda, idioma)}
                 </span>
               </li>
             ))}

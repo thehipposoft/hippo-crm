@@ -12,6 +12,7 @@ import {
   sumarMesesMismoDia,
   type FechaCalendario,
 } from './fechas'
+import { activasEsteMes, adeudadoPorUnidades, cobraPorUnidad, inicioCobroPorUnidad, mesesFacturables } from './unidades'
 import { MONEDA_POR_DEFECTO, type FrecuenciaPago, type Moneda, type PagoRow, type ProyectoRow } from './types'
 
 const DIAS_POR_SEMANA = 7
@@ -60,6 +61,8 @@ export const periodosIniciados = (frecuencia: FrecuenciaPago, desde: FechaCalend
 // Solo recurrentes con fecha de inicio. Corre hasta hoy, o hasta el deadline si ya pasó.
 export const periodosAdeudados = (proyecto: ProyectoRow, fechaHoy: FechaCalendario = hoy()): number | null => {
   if (proyecto.tipoProyecto !== 'RECURRENTE') return null
+  // Por unidad: meses calendario cobrados
+  if (cobraPorUnidad(proyecto)) return mesesFacturables(proyecto, fechaHoy).length
   const inicio = parseFecha(proyecto.fechaInicio)
   if (!inicio) return null
   const fin = parseFecha(proyecto.deadline)
@@ -85,7 +88,11 @@ export const resumenPendiente = (
   const pagosProyecto = pagos.filter((p) => esDelProyecto(p, proyecto))
   const moneda = monedaProyecto(proyecto, pagosProyecto)
   const periodos = periodosAdeudados(proyecto, fechaHoy)
-  const adeudado = periodos === null ? proyecto.valor : proyecto.valor * periodos
+  const adeudado = cobraPorUnidad(proyecto)
+    ? adeudadoPorUnidades(proyecto, fechaHoy)
+    : periodos === null
+      ? proyecto.valor
+      : proyecto.valor * periodos
 
   let pagado = 0
   const otrasMonedas: Partial<Record<Moneda, number>> = {}
@@ -123,6 +130,8 @@ export type CobroRecurrente = {
   montoEsteMes: number
   // Inicio del próximo período después de hoy; null si el contrato ya terminó
   proximoVencimiento: FechaCalendario | null
+  // Solo cobro por unidad: unidades activas este mes
+  unidadesEsteMes: number | null
 }
 
 // Solo recurrentes con fecha de inicio. El deadline, si existe, es el fin del contrato.
@@ -132,10 +141,11 @@ export const cobroRecurrente = (
   fechaHoy: FechaCalendario = hoy()
 ): CobroRecurrente | null => {
   if (proyecto.tipoProyecto !== 'RECURRENTE') return null
-  const inicio = parseFecha(proyecto.fechaInicio)
+  const porUnidad = cobraPorUnidad(proyecto)
+  const inicio = porUnidad ? inicioCobroPorUnidad(proyecto) : parseFecha(proyecto.fechaInicio)
   if (!inicio) return null
 
-  const frecuencia = proyecto.frecuenciaPago ?? FRECUENCIA_POR_DEFECTO
+  const frecuencia = porUnidad ? 'MENSUAL' : (proyecto.frecuenciaPago ?? FRECUENCIA_POR_DEFECTO)
   const fin = parseFecha(proyecto.deadline)
   const limite = (fecha: FechaCalendario): FechaCalendario => (fin ? minFecha(fecha, fin) : fecha)
 
@@ -146,12 +156,26 @@ export const cobroRecurrente = (
   const siguiente = inicioPeriodo(inicio, frecuencia, periodosIniciados(frecuencia, inicio, fechaHoy))
   const proximoVencimiento = fin && compararFechas(siguiente, fin) > 0 ? null : siguiente
 
+  if (porUnidad) {
+    const unidadesEsteMes = activasEsteMes(proyecto, fechaHoy)
+    const montoEsteMes = (unidadesEsteMes ?? 0) * proyecto.valor
+    return {
+      proyecto,
+      resumen: resumenPendiente(proyecto, pagos, fechaHoy),
+      cuotasEsteMes: montoEsteMes > 0 ? 1 : 0,
+      montoEsteMes,
+      proximoVencimiento,
+      unidadesEsteMes,
+    }
+  }
+
   return {
     proyecto,
     resumen: resumenPendiente(proyecto, pagos, fechaHoy),
     cuotasEsteMes,
     montoEsteMes: cuotasEsteMes * proyecto.valor,
     proximoVencimiento,
+    unidadesEsteMes: null,
   }
 }
 
@@ -171,6 +195,11 @@ export const sugerenciaPago = (
   fechaHoy: FechaCalendario = hoy()
 ): SugerenciaPago => {
   const resumen = resumenPendiente(proyecto, pagos, fechaHoy)
+  // Por unidad: la cuota del mes es unidades activas × precio
+  if (cobraPorUnidad(proyecto)) {
+    const monto = (activasEsteMes(proyecto, fechaHoy) ?? 0) * proyecto.valor
+    return { moneda: resumen.moneda, monto: monto > 0 ? monto : null, origen: monto > 0 ? 'CUOTA' : null }
+  }
   if (proyecto.tipoProyecto === 'RECURRENTE' && proyecto.valor > 0) {
     return { moneda: resumen.moneda, monto: proyecto.valor, origen: 'CUOTA' }
   }

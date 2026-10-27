@@ -10,6 +10,7 @@ import {
   type ResumenPendiente,
 } from './proyectos'
 import type { CostoRow, Estado, Moneda, PagoRow, ProyectoRow } from './types'
+import { cobraPorUnidad } from './unidades'
 
 export const DIAS_AVISO_DEADLINE = 14
 export const DIAS_AVISO_RENOVACION = 30
@@ -122,7 +123,11 @@ export const datosIncompletos = (proyectos: ProyectoRow[]): DatoIncompleto[] =>
     .flatMap((proyecto) => {
       const motivos: string[] = []
       if (!proyecto.moneda) motivos.push('sin moneda')
-      if (proyecto.tipoProyecto === 'RECURRENTE' && !parseFecha(proyecto.fechaInicio)) motivos.push('recurrente sin fecha de inicio')
+      if (cobraPorUnidad(proyecto)) {
+        if (!proyecto.unidades?.length) motivos.push(`sin ${proyecto.unidad}s cargadas`)
+      } else if (proyecto.tipoProyecto === 'RECURRENTE' && !parseFecha(proyecto.fechaInicio)) {
+        motivos.push('recurrente sin fecha de inicio')
+      }
       if (proyecto.estado === 'ACTIVO' && proyecto.valor <= 0) motivos.push('sin valor')
       return motivos.length > 0 ? [{ proyecto, motivo: motivos.join(', ') }] : []
     })

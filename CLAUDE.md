@@ -61,6 +61,7 @@ Tipos en `lib/types.ts`. WordPress los guarda como custom post types.
 | Cliente  | `GET/POST /clientes`, `GET/PUT /clientes/:id`, `GET /clientes/:id/proyectos` | nombre, contacto, telefono, emailContacto, pais |
 | Proyecto | `GET/POST /proyectos`, `GET/PUT /proyectos/:id`, `GET /proyectos/:id/pagos` | clienteId, estado, fechaInicio, deadline, tipoProyecto (ON_OFF \| RECURRENTE), valor, moneda, frecuenciaPago, url, accionPendiente |
 | Pago     | `GET/POST /pagos`, `GET/PUT/DELETE /pagos/:id`               | proyectoId, fecha, monto, moneda, medioPago, notas |
+| Unidad   | `POST /unidades`, `GET/PUT/DELETE /unidades/:id` (vienen embebidas en el proyecto como `unidades`) | proyectoId, nombre, fechaAlta, fechaBaja, notas |
 | Costo    | `GET/POST /costos`, `GET/PUT /costos/:id`                    | nombreCosto, monto, moneda, frecuencia, metodoPago, fechaRenovacion, fechaInicio, fechaBaja |
 
 - Link público: `POST/DELETE /clientes/:id/link-publico` (con login) y
@@ -79,6 +80,10 @@ Tipos en `lib/types.ts`. WordPress los guarda como custom post types.
 - **Pendiente de un proyecto:** lo calcula el CRM (`lib/proyectos.ts`), no WordPress.
   Recurrentes: `valor × períodos iniciados` desde `fechaInicio` hasta hoy (o hasta
   el deadline si ya pasó).
+- **Cobro por unidad** (casillas, licencias): proyecto RECURRENTE mensual con `unidad`
+  (ej. 'casilla'); `valor` = precio por unidad por mes. Cada mes calendario desde el inicio
+  (o la primera alta) se cobra `unidades activas × valor`. "Mes completo": una unidad activa
+  aunque sea un día del mes (alta o baja) cuenta todo el mes. Lógica en `lib/unidades.ts`.
 - **Costos del mes:** semanal = monto × 52 / 12; anual = monto / 12. Solo cuentan
   los costos vigentes en el mes (entre `fechaInicio` y `fechaBaja`).
 - **Saldo:** pendiente > 0 = debe; ≈ 0 = "Al día"; < 0 = "a favor" (pagó de más o por adelantado).
@@ -125,6 +130,7 @@ Tipos en `lib/types.ts`. WordPress los guarda como custom post types.
 - Pagos filtrados por período y exportación a CSV
 - Registro rápido de pagos con monto sugerido
 - Recibos de pago y estado de cuenta (PDF, español/inglés) y link público para el cliente
+- Cobro por unidad (casillas de correo): activas por mes, altas y bajas
 - Dashboard "Hoy": por cobrar, cobrado y recurrentes del mes, deadlines, renovaciones,
   acciones pendientes y datos incompletos
 

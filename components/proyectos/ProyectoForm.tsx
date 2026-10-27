@@ -16,6 +16,8 @@ import {
   type TipoProyecto,
 } from '@/lib/types'
 
+const UNIDAD_POR_DEFECTO = 'casilla'
+
 interface ProyectoFormProps {
   accion: AccionFormulario
   textoBoton: string
@@ -27,6 +29,9 @@ interface ProyectoFormProps {
 
 export const ProyectoForm = ({ accion, textoBoton, clientes, proyecto, monedaInicial }: ProyectoFormProps) => {
   const [tipoProyecto, setTipoProyecto] = useState<TipoProyecto>(proyecto?.tipoProyecto ?? 'ON_OFF')
+  const [porUnidad, setPorUnidad] = useState(Boolean(proyecto?.unidad))
+  const [unidad, setUnidad] = useState(proyecto?.unidad ?? UNIDAD_POR_DEFECTO)
+  const esPorUnidad = tipoProyecto === 'RECURRENTE' && porUnidad
 
   return (
     <Formulario accion={accion} textoBoton={textoBoton}>
@@ -66,7 +71,7 @@ export const ProyectoForm = ({ accion, textoBoton, clientes, proyecto, monedaIni
             {TIPOS_PROYECTO.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
           </Select>
         </Campo>
-        {tipoProyecto === 'RECURRENTE' && (
+        {tipoProyecto === 'RECURRENTE' && !esPorUnidad && (
           <Campo nombre="frecuencia_pago" label="Frecuencia de pago">
             <Select name="frecuencia_pago" defaultValue={proyecto?.frecuenciaPago ?? 'MENSUAL'}>
               {FRECUENCIAS_PAGO.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
@@ -75,8 +80,39 @@ export const ProyectoForm = ({ accion, textoBoton, clientes, proyecto, monedaIni
         )}
       </FilaCampos>
 
+      {tipoProyecto === 'RECURRENTE' && (
+        <div className="rounded-lg border border-slate-200 bg-brand-white px-4 py-3">
+          <label className="flex items-start gap-3 text-sm text-dark-text">
+            <input
+              type="checkbox"
+              checked={porUnidad}
+              onChange={(e) => setPorUnidad(e.target.checked)}
+              className="mt-0.5 h-4 w-4 accent-brand-blue"
+            />
+            <span>
+              Se cobra por unidad
+              <span className="block text-xs text-dark-text/50">
+                Ej. casillas de correo o licencias: se cobra cada mes según cuántas haya activas.
+              </span>
+            </span>
+          </label>
+          {esPorUnidad && (
+            <div className="mt-3">
+              <Campo nombre="unidad" label="Nombre de la unidad" ayuda="En singular: casilla, licencia, usuario…">
+                <Input name="unidad" type="text" required value={unidad} onChange={(e) => setUnidad(e.target.value)} />
+              </Campo>
+            </div>
+          )}
+        </div>
+      )}
+      {/* Por unidad siempre es mensual; sin unidad, se manda vacío para borrarla al editar */}
+      {esPorUnidad ? <input type="hidden" name="frecuencia_pago" value="MENSUAL" /> : <input type="hidden" name="unidad" value="" />}
+
       <FilaCampos>
-        <Campo nombre="valor" label={tipoProyecto === 'RECURRENTE' ? 'Valor por período' : 'Valor'}>
+        <Campo
+          nombre="valor"
+          label={esPorUnidad ? `Precio por ${unidad || 'unidad'} por mes` : tipoProyecto === 'RECURRENTE' ? 'Valor por período' : 'Valor'}
+        >
           <Input name="valor" type="number" step="0.01" min="0" defaultValue={proyecto?.valor} placeholder="0.00" />
         </Campo>
         <Campo nombre="moneda" label="Moneda">

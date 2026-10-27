@@ -111,3 +111,46 @@ describe('costoSchema y clienteSchema', () => {
     expect(r.ok && r.datos).toEqual({ nombre: 'Acme', contacto: null, telefono: null, email_contacto: null, pais: null })
   })
 })
+
+describe('proyectoSchema: cobro por unidad', () => {
+  const base = { nombre: 'Casillas', cliente_id: '3', tipo_proyecto: 'RECURRENTE', frecuencia_pago: 'MENSUAL' }
+
+  it('acepta la unidad en recurrentes mensuales (en minúscula)', () => {
+    const r = validarFormulario(proyectoSchema, formData({ ...base, unidad: 'Casilla' }))
+    expect(r.ok && r.datos.unidad).toBe('casilla')
+  })
+
+  it('rechaza unidad con frecuencia no mensual', () => {
+    const r = validarFormulario(proyectoSchema, formData({ ...base, frecuencia_pago: 'ANUAL', unidad: 'casilla' }))
+    expect(errores(r)).toEqual({ unidad: 'El cobro por unidad es solo para proyectos recurrentes mensuales.' })
+  })
+
+  it('on-off ignora la unidad', () => {
+    const r = validarFormulario(proyectoSchema, formData({ nombre: 'Web', cliente_id: '3', tipo_proyecto: 'ON_OFF', unidad: '' }))
+    expect(r.ok && r.datos.unidad).toBeNull()
+  })
+})
+
+describe('unidades', () => {
+  it('alta múltiple: separa por línea o coma, saca vacíos y repetidos', async () => {
+    const { unidadesNuevasSchema } = await import('./unidad')
+    const r = validarFormulario(
+      unidadesNuevasSchema,
+      formData({ nombres: 'ana@acme.com\n\n juan@acme.com, ana@acme.com;luz@acme.com ', fecha_alta: '2026-10-01' })
+    )
+    expect(r.ok && r.datos.nombres).toEqual(['ana@acme.com', 'juan@acme.com', 'luz@acme.com'])
+  })
+
+  it('alta múltiple vacía', async () => {
+    const { unidadesNuevasSchema } = await import('./unidad')
+    expect(errores(validarFormulario(unidadesNuevasSchema, formData({ nombres: ' \n ', fecha_alta: '2026-10-01' })))).toEqual({
+      nombres: 'Cargá al menos una.',
+    })
+  })
+
+  it('la baja no puede ser anterior al alta', async () => {
+    const { unidadSchema } = await import('./unidad')
+    const r = validarFormulario(unidadSchema, formData({ nombre: 'a', fecha_alta: '2026-05-01', fecha_baja: '2026-04-30' }))
+    expect(errores(r)).toEqual({ fecha_baja: 'La baja no puede ser anterior al alta.' })
+  })
+})

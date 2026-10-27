@@ -46,3 +46,15 @@ export const SUFIJO_FRECUENCIA: Record<FrecuenciaPago, string> = {
   MENSUAL: '/ mes',
   ANUAL: '/ año',
 }
+
+// "US$ 5,00 / casilla" para cobro por unidad, "US$ 300,00 / mes" para recurrentes
+export const formatCuota = (
+  valor: number,
+  moneda: string | null | undefined,
+  proyecto: { tipoProyecto: string; frecuenciaPago: FrecuenciaPago | null; unidad?: string | null }
+): string => {
+  const monto = formatMonto(valor, moneda)
+  if (proyecto.tipoProyecto !== 'RECURRENTE') return monto
+  if (proyecto.unidad) return `${monto} / ${proyecto.unidad}`
+  return proyecto.frecuenciaPago ? `${monto} ${SUFIJO_FRECUENCIA[proyecto.frecuenciaPago]}` : monto
+}

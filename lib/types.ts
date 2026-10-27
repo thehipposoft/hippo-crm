@@ -32,6 +32,8 @@ export type ProyectoRow = {
   valor: number
   frecuenciaPago: FrecuenciaPago | null
   url: string | null
+  // Pendiente en WordPress: hasta que lo devuelva, se infiere de los pagos
+  moneda?: Moneda | null
 }
 
 export type Moneda = 'USD' | 'ARS' | 'AUD' | 'EUR'
@@ -56,6 +58,9 @@ export type CostoRow = {
   metodoPago: string | null
   frecuencia: FrecuenciaPago
   fechaRenovacion: string | null
+  // Vigencia: sin alta = desde siempre, sin baja = sigue activo
+  fechaInicio?: string | null
+  fechaBaja?: string | null
 }
 
 export const ESTADOS: { value: Estado; label: string }[] = [
@@ -81,3 +86,5 @@ export const FRECUENCIAS_PAGO: { value: FrecuenciaPago; label: string }[] = [
 ]
 
 export const MONEDAS: Moneda[] = ['USD', 'ARS', 'AUD', 'EUR']
+
+export const MONEDA_POR_DEFECTO: Moneda = 'USD'

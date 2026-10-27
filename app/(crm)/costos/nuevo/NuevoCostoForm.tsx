@@ -89,6 +89,28 @@ export const NuevoCostoForm = () => {
           </div>
         </div>
 
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="fecha_inicio" className="block text-xs font-medium text-dark-text/60 mb-1.5">
+              Fecha de alta
+            </label>
+            <input
+              id="fecha_inicio" name="fecha_inicio" type="date"
+              className="w-full rounded-lg bg-white border border-slate-200 px-3.5 py-2.5 text-sm text-dark-text focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition"
+            />
+          </div>
+          <div>
+            <label htmlFor="fecha_baja" className="block text-xs font-medium text-dark-text/60 mb-1.5">
+              Fecha de baja
+            </label>
+            <input
+              id="fecha_baja" name="fecha_baja" type="date"
+              className="w-full rounded-lg bg-white border border-slate-200 px-3.5 py-2.5 text-sm text-dark-text focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition"
+            />
+          </div>
+        </div>
+        <p className="-mt-2 text-xs text-dark-text/40">Sin fecha de baja = sigue activo. Solo se suma en los meses entre alta y baja.</p>
+
         {state.error && <p className="text-xs text-rose-600 pt-1">{state.error}</p>}
 
         <button

@@ -3,18 +3,8 @@
 import { useRouter } from 'next/navigation'
 import { FRECUENCIAS_PAGO, type CostoRow } from '@/lib/types'
 import { CostoRowActions } from './CostoRowActions'
-
-const formatDate = (iso: string | null): string => {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('es-UY', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  })
-}
-
-const formatMonto = (monto: number, moneda: string): string =>
-  new Intl.NumberFormat('es-UY', { style: 'currency', currency: moneda }).format(monto)
+import { formatFecha, formatMonto } from '@/lib/format'
+import { costoVigenteEn } from '@/lib/analytics'
 
 const labelFrecuencia = (frecuencia: CostoRow['frecuencia']): string =>
   FRECUENCIAS_PAGO.find((f) => f.value === frecuencia)?.label ?? frecuencia
@@ -57,16 +47,23 @@ export const CostosTable = ({ costos }: CostosTableProps) => {
               </td>
             </tr>
           ) : (
-            costos.map((costo) => (
+            costos.map((costo) => {
+              const vigente = costoVigenteEn(costo)
+              return (
               <tr
                 key={costo.id}
                 onClick={() => router.push(`/costos/${costo.id}`)}
-                className="cursor-pointer border-b border-slate-100 last:border-0 hover:bg-brand-white transition-colors"
+                className={`cursor-pointer border-b border-slate-100 last:border-0 hover:bg-brand-white transition-colors ${vigente ? '' : 'opacity-50'}`}
               >
                 <td className="px-5 py-4">
                   <span className="font-medium text-dark-text">
                     {costo.nombreCosto}
                   </span>
+                  {!vigente && (
+                    <span className="ml-2 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-dark-text/60">
+                      Inactivo
+                    </span>
+                  )}
                 </td>
                 <td className="px-5 py-4 text-dark-text tabular-nums">
                   {formatMonto(costo.monto, costo.moneda)}
@@ -78,13 +75,14 @@ export const CostosTable = ({ costos }: CostosTableProps) => {
                   {costo.metodoPago ?? '—'}
                 </td>
                 <td className="px-5 py-4 text-dark-text/60 tabular-nums">
-                  {formatDate(costo.fechaRenovacion)}
+                  {formatFecha(costo.fechaRenovacion)}
                 </td>
                 <td className="px-3 py-4" onClick={(e) => e.stopPropagation()}>
                   <CostoRowActions costoId={costo.id} />
                 </td>
               </tr>
-            ))
+              )
+            })
           )}
         </tbody>
       </table>

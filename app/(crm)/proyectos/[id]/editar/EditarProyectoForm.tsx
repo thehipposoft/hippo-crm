@@ -3,7 +3,7 @@
 import { useActionState, useState } from 'react'
 import Link from 'next/link'
 import { actualizarProyecto, type EditarProyectoState } from './actions'
-import { ESTADOS, FRECUENCIAS_PAGO, TIPOS_PROYECTO, type ClienteRow, type ProyectoRow, type TipoProyecto } from '@/lib/types'
+import { ESTADOS, FRECUENCIAS_PAGO, MONEDAS, TIPOS_PROYECTO, type ClienteRow, type Moneda, type ProyectoRow, type TipoProyecto } from '@/lib/types'
 
 const initialState: EditarProyectoState = { error: null }
 
@@ -15,9 +15,10 @@ const toDateInputValue = (iso: string | null): string => {
 interface EditarProyectoFormProps {
   proyecto: ProyectoRow
   clientes: ClienteRow[]
+  monedaInicial: Moneda
 }
 
-export const EditarProyectoForm = ({ proyecto, clientes }: EditarProyectoFormProps) => {
+export const EditarProyectoForm = ({ proyecto, clientes, monedaInicial }: EditarProyectoFormProps) => {
   const actualizarProyectoConId = actualizarProyecto.bind(null, String(proyecto.id))
   const [state, formAction, pending] = useActionState(actualizarProyectoConId, initialState)
   const [tipoProyecto, setTipoProyecto] = useState<TipoProyecto>(proyecto.tipoProyecto)
@@ -121,15 +122,28 @@ export const EditarProyectoForm = ({ proyecto, clientes }: EditarProyectoFormPro
           )}
         </div>
 
-        <div>
-          <label htmlFor="valor" className="block text-xs font-medium text-dark-text/60 mb-1.5">
-            Valor
-          </label>
-          <input
-            id="valor" name="valor" type="number" step="0.01" defaultValue={proyecto.valor}
-            className="w-full rounded-lg bg-white border border-slate-200 px-3.5 py-2.5 text-sm text-dark-text placeholder-dark-text/30 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition"
-            placeholder="0.00"
-          />
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="valor" className="block text-xs font-medium text-dark-text/60 mb-1.5">
+              Valor
+            </label>
+            <input
+              id="valor" name="valor" type="number" step="0.01" defaultValue={proyecto.valor}
+              className="w-full rounded-lg bg-white border border-slate-200 px-3.5 py-2.5 text-sm text-dark-text placeholder-dark-text/30 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition"
+              placeholder="0.00"
+            />
+          </div>
+          <div>
+            <label htmlFor="moneda" className="block text-xs font-medium text-dark-text/60 mb-1.5">
+              Moneda
+            </label>
+            <select
+              id="moneda" name="moneda" defaultValue={monedaInicial}
+              className="w-full rounded-lg bg-white border border-slate-200 px-3.5 py-2.5 text-sm text-dark-text focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition"
+            >
+              {MONEDAS.map((m) => <option key={m} value={m}>{m}</option>)}
+            </select>
+          </div>
         </div>
 
         <div>

@@ -1,7 +1,8 @@
 import { cookies } from 'next/headers'
 import { notFound, unstable_rethrow } from 'next/navigation'
 import { wpFetch } from '@/lib/wp'
-import type { ClienteRow, ProyectoRow } from '@/lib/types'
+import type { ClienteRow, PagoRow, ProyectoRow } from '@/lib/types'
+import { monedaProyecto } from '@/lib/proyectos'
 import { EditarProyectoForm } from './EditarProyectoForm'
 
 export default async function EditarProyectoPage({
@@ -20,7 +21,11 @@ export default async function EditarProyectoPage({
     notFound()
   }
 
-  const clientes = await wpFetch<ClienteRow[]>('/clientes', token)
+  const [clientes, pagos] = await Promise.all([
+    wpFetch<ClienteRow[]>('/clientes', token),
+    wpFetch<PagoRow[]>(`/proyectos/${id}/pagos`, token),
+  ])
 
-  return <EditarProyectoForm proyecto={proyecto} clientes={clientes} />
+  // Proyectos viejos sin moneda: se propone la de sus pagos, no USD a ciegas
+  return <EditarProyectoForm proyecto={proyecto} clientes={clientes} monedaInicial={monedaProyecto(proyecto, pagos)} />
 }

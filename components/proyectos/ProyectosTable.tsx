@@ -6,6 +6,8 @@ import type { ProyectoRow, Estado, FrecuenciaPago, PagoRow } from '@/lib/types'
 import { StatusBadge } from './StatusBadge'
 import { ProyectoRowActions } from './ProyectoRowActions'
 import { SearchInput } from '@/components/ui/SearchInput'
+import { formatMonto } from '@/lib/format'
+import { resumenPendiente, type ResumenPendiente } from '@/lib/proyectos'
 
 const FILTROS: { label: string; value: Estado | 'TODOS' }[] = [
   { label: 'Todos', value: 'TODOS' },
@@ -26,18 +28,18 @@ const FRECUENCIA_SUFIJO: Record<FrecuenciaPago, string> = {
   ANUAL: '/ año',
 }
 
-const formatMonto = (monto: number): string => `$${new Intl.NumberFormat('es-UY').format(monto)}`
-
-const formatValor = (proyecto: ProyectoRow): string => {
-  const monto = formatMonto(proyecto.valor)
+const formatValor = (proyecto: ProyectoRow, resumen: ResumenPendiente): string => {
+  const monto = formatMonto(proyecto.valor, resumen.moneda)
   if (proyecto.tipoProyecto === 'RECURRENTE' && proyecto.frecuenciaPago) {
     return `${monto} ${FRECUENCIA_SUFIJO[proyecto.frecuenciaPago]}`
   }
   return monto
 }
 
-const montoPendiente = (proyecto: ProyectoRow, pagos: PagoRow[]): number =>
-  proyecto.valor - pagos.filter((p) => p.proyectoId === proyecto.id).reduce((suma, p) => suma + p.monto, 0)
+const formatOtrasMonedas = (resumen: ResumenPendiente): string | null => {
+  const lineas = Object.entries(resumen.otrasMonedas).map(([moneda, monto]) => formatMonto(monto, moneda))
+  return lineas.length > 0 ? `+ ${lineas.join(' + ')} sin descontar` : null
+}
 
 const ORDEN_ESTADO: Record<Estado, number> = {
   ACTIVO: 0,
@@ -135,7 +137,10 @@ export const ProyectosTable = ({ proyectos, pagos, mostrarCliente = true }: Proy
                 </td>
               </tr>
             ) : (
-              filtered.map((proyecto) => (
+              filtered.map((proyecto) => {
+                const resumen = resumenPendiente(proyecto, pagos)
+                const otrasMonedas = formatOtrasMonedas(resumen)
+                return (
                 <tr
                   key={proyecto.id}
                   onClick={() => router.push(`/proyectos/${proyecto.id}`)}
@@ -155,10 +160,13 @@ export const ProyectosTable = ({ proyectos, pagos, mostrarCliente = true }: Proy
                     <StatusBadge estado={proyecto.estado} />
                   </td>
                   <td className="px-5 py-4 text-dark-text/60 tabular-nums">
-                    {formatValor(proyecto)}
+                    {formatValor(proyecto, resumen)}
                   </td>
                   <td className="px-5 py-4 text-dark-text/60 tabular-nums">
-                    {formatMonto(montoPendiente(proyecto, pagos))}
+                    {formatMonto(resumen.pendiente, resumen.moneda)}
+                    {otrasMonedas && (
+                      <span className="block text-xs text-dark-text/40">{otrasMonedas}</span>
+                    )}
                   </td>
                   <td className="px-5 py-4 max-w-xs text-dark-text/60">
                     {proyecto.accionPendiente ? truncate(proyecto.accionPendiente, 60) : '—'}
@@ -167,7 +175,8 @@ export const ProyectosTable = ({ proyectos, pagos, mostrarCliente = true }: Proy
                     <ProyectoRowActions proyectoId={proyecto.id} />
                   </td>
                 </tr>
-              ))
+                )
+              })
             )}
           </tbody>
         </table>

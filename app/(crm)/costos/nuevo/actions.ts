@@ -26,6 +26,8 @@ export async function crearCosto(
     metodo_pago: formData.get('metodo_pago')?.toString() || null,
     frecuencia: formData.get('frecuencia')?.toString() || 'MENSUAL',
     fecha_renovacion: formData.get('fecha_renovacion')?.toString() || null,
+    fecha_inicio: formData.get('fecha_inicio')?.toString() || null,
+    fecha_baja: formData.get('fecha_baja')?.toString() || null,
   }
 
   const token = (await cookies()).get('hippo_token')?.value

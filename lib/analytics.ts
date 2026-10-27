@@ -1,3 +1,5 @@
+import { hoy, indiceMes, MESES_POR_ANIO, mismoMes, parseFecha, sumarMeses, type FechaCalendario } from './fechas'
+import { formatMes } from './format'
 import { ESTADOS, MONEDAS, type CostoRow, type Estado, type Moneda, type PagoRow, type ProyectoRow } from './types'
 
 const MONEDAS_VALIDAS = MONEDAS as readonly string[]
@@ -16,32 +18,52 @@ export function agruparPorMoneda(items: { monto: number; moneda: string }[]): Re
 }
 
 export function esEsteMes(fechaIso: string | null | undefined): boolean {
-  if (!fechaIso) return false
-  const fecha = new Date(fechaIso)
-  const ahora = new Date()
-  return fecha.getFullYear() === ahora.getFullYear() && fecha.getMonth() === ahora.getMonth()
+  const fecha = parseFecha(fechaIso)
+  return fecha !== null && mismoMes(fecha, hoy())
 }
 
 export function pagosEsteMes(pagos: PagoRow[]): Record<Moneda, number> {
   return agruparPorMoneda(pagos.filter((p) => esEsteMes(p.fecha)))
 }
 
-const MESES_POR_ANIO = 12
+const SEMANAS_POR_ANIO = 52
 
-// Costo mensualizado: mensual/semanal aportan su monto completo cada mes; uno
-// anual se prorratea (monto / 12) para reflejar su impacto mensual promedio.
+// Costo mensualizado: mensual aporta su monto; semanal, 52 semanas / 12 meses
+// (~4,33 por mes); anual se prorratea (monto / 12).
 function costoMensualizado(costo: CostoRow): number {
-  if (costo.frecuencia === 'ANUAL') return costo.monto / MESES_POR_ANIO
-  return costo.monto
+  switch (costo.frecuencia) {
+    case 'SEMANAL':
+      return (costo.monto * SEMANAS_POR_ANIO) / MESES_POR_ANIO
+    case 'ANUAL':
+      return costo.monto / MESES_POR_ANIO
+    default:
+      return costo.monto
+  }
+}
+
+// Un costo cuenta en el mes si se dio de alta antes de que termine y no se dio
+// de baja antes de que empiece (el mes de la baja todavía se paga).
+export function costoVigenteEn(costo: CostoRow, mes: FechaCalendario = hoy()): boolean {
+  const alta = parseFecha(costo.fechaInicio)
+  const baja = parseFecha(costo.fechaBaja)
+  const indice = indiceMes(mes)
+  if (alta && indiceMes(alta) > indice) return false
+  if (baja && indiceMes(baja) < indice) return false
+  return true
+}
+
+const costosVigentesEsteMes = (costos: CostoRow[]): CostoRow[] => {
+  const mes = hoy()
+  return costos.filter((c) => costoVigenteEn(c, mes))
 }
 
 export function costosEsteMes(costos: CostoRow[]): Record<Moneda, number> {
-  const aportes = costos.map((c) => ({ monto: costoMensualizado(c), moneda: c.moneda }))
+  const aportes = costosVigentesEsteMes(costos).map((c) => ({ monto: costoMensualizado(c), moneda: c.moneda }))
   return agruparPorMoneda(aportes)
 }
 
 export function gastosDelMes(costos: CostoRow[]): Array<{ nombre: string } & Record<Moneda, number>> {
-  return costos
+  return costosVigentesEsteMes(costos)
     .map((c) => ({
       nombre: c.nombreCosto,
       ...agruparPorMoneda([{ monto: costoMensualizado(c), moneda: c.moneda }]),
@@ -71,22 +93,20 @@ export function totalHistoricoPagos(pagos: PagoRow[]): Record<Moneda, number> {
   return agruparPorMoneda(pagos)
 }
 
-const formatMesLabel = (fecha: Date): string =>
-  fecha.toLocaleDateString('es-UY', { month: 'short', year: 'numeric' })
+const MESES_GRAFICO = 12
 
 export function pagosPorMes(pagos: PagoRow[]): Array<{ mes: string } & Record<Moneda, number>> {
-  const ahora = new Date()
-  const meses: Date[] = Array.from({ length: 12 }, (_, i) =>
-    new Date(ahora.getFullYear(), ahora.getMonth() - (11 - i), 1)
+  const inicioMesActual = { ...hoy(), dia: 1 }
+  const meses = Array.from({ length: MESES_GRAFICO }, (_, i) =>
+    sumarMeses(inicioMesActual, i - (MESES_GRAFICO - 1))
   )
 
-  return meses.map((fecha) => {
+  return meses.map((mes) => {
     const pagosDelMes = pagos.filter((p) => {
-      if (!p.fecha) return false
-      const fechaPago = new Date(p.fecha)
-      return fechaPago.getFullYear() === fecha.getFullYear() && fechaPago.getMonth() === fecha.getMonth()
+      const fechaPago = parseFecha(p.fecha)
+      return fechaPago !== null && mismoMes(fechaPago, mes)
     })
-    return { mes: formatMesLabel(fecha), ...agruparPorMoneda(pagosDelMes) }
+    return { mes: formatMes(mes), ...agruparPorMoneda(pagosDelMes) }
   })
 }
 

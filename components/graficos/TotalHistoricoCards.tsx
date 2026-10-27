@@ -2,9 +2,7 @@
 
 import { totalHistoricoPagos } from '@/lib/analytics'
 import type { Moneda, PagoRow } from '@/lib/types'
-
-const formatMonto = (monto: number, moneda: Moneda): string =>
-  new Intl.NumberFormat('es-UY', { style: 'currency', currency: moneda }).format(monto)
+import { formatMonto } from '@/lib/format'
 
 interface TotalHistoricoCardsProps {
   pagos: PagoRow[]

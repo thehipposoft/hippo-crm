@@ -31,6 +31,7 @@ export async function actualizarProyecto(
     accion_pendiente: formData.get('accion_pendiente')?.toString() || null,
     tipo_proyecto: tipoProyecto,
     valor: Number(formData.get('valor')?.toString() || 0),
+    moneda: formData.get('moneda')?.toString() || 'USD',
     frecuencia_pago: tipoProyecto === 'RECURRENTE' ? formData.get('frecuencia_pago')?.toString() || 'MENSUAL' : null,
     url: formData.get('url')?.toString() || null,
   }

@@ -4,14 +4,20 @@ import Link from 'next/link'
 import { wpFetch } from '@/lib/wp'
 import { StatusBadge } from '@/components/proyectos/StatusBadge'
 import { PagosTable } from '@/components/pagos/PagosTable'
-import { FRECUENCIAS_PAGO, TIPOS_PROYECTO, type PagoRow, type ProyectoRow } from '@/lib/types'
+import { FRECUENCIAS_PAGO, TIPOS_PROYECTO, type FrecuenciaPago, type PagoRow, type ProyectoRow } from '@/lib/types'
+import { formatFecha, formatMonto } from '@/lib/format'
+import { resumenPendiente } from '@/lib/proyectos'
 
-const formatDate = (iso: string | null): string => {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('es-UY', { day: '2-digit', month: 'short', year: 'numeric' })
+const UNIDAD_PERIODO: Record<FrecuenciaPago, [string, string]> = {
+  SEMANAL: ['semana', 'semanas'],
+  MENSUAL: ['mes', 'meses'],
+  ANUAL: ['año', 'años'],
 }
 
-const formatMonto = (valor: number): string => `$${new Intl.NumberFormat('es-UY').format(valor)}`
+const formatPeriodos = (cantidad: number, frecuencia: FrecuenciaPago): string => {
+  const [singular, plural] = UNIDAD_PERIODO[frecuencia]
+  return `${cantidad} ${cantidad === 1 ? singular : plural}`
+}
 
 const labelTipoProyecto = (tipo: ProyectoRow['tipoProyecto']): string =>
   TIPOS_PROYECTO.find((t) => t.value === tipo)?.label ?? tipo
@@ -36,7 +42,10 @@ export default async function ProyectoDetallePage({
   }
 
   const pagos = await wpFetch<PagoRow[]>(`/proyectos/${id}/pagos`, token)
-  const montoPendiente = proyecto.valor - pagos.reduce((suma, p) => suma + p.monto, 0)
+  const resumen = resumenPendiente(proyecto, pagos)
+  const otrasMonedas = Object.entries(resumen.otrasMonedas)
+    .map(([moneda, monto]) => formatMonto(monto, moneda))
+    .join(' + ')
 
   return (
     <div className="px-8 py-8 max-w-2xl">
@@ -69,14 +78,22 @@ export default async function ProyectoDetallePage({
           <span className="text-xs font-medium text-dark-text/50 uppercase tracking-wider">Estado</span>
           <StatusBadge estado={proyecto.estado} />
         </div>
-        <Field label="Fecha de inicio" value={formatDate(proyecto.fechaInicio)} />
-        <Field label="Deadline" value={formatDate(proyecto.deadline)} />
+        <Field label="Fecha de inicio" value={formatFecha(proyecto.fechaInicio)} />
+        <Field label="Deadline" value={formatFecha(proyecto.deadline)} />
         <Field label="Tipo de proyecto" value={labelTipoProyecto(proyecto.tipoProyecto)} />
-        <Field label="Valor" value={formatMonto(proyecto.valor)} />
+        <Field label="Valor" value={formatMonto(proyecto.valor, resumen.moneda)} />
         {proyecto.tipoProyecto === 'RECURRENTE' && proyecto.frecuenciaPago && (
           <Field label="Frecuencia de pago" value={labelFrecuenciaPago(proyecto.frecuenciaPago)} />
         )}
-        <Field label="Monto pendiente" value={formatMonto(montoPendiente)} />
+        {resumen.periodos !== null && (
+          <Field
+            label="Adeudado a la fecha"
+            value={`${formatMonto(resumen.adeudado, resumen.moneda)} (${formatPeriodos(resumen.periodos, proyecto.frecuenciaPago ?? 'MENSUAL')})`}
+          />
+        )}
+        <Field label="Pagado" value={formatMonto(resumen.pagado, resumen.moneda)} />
+        <Field label="Monto pendiente" value={formatMonto(resumen.pendiente, resumen.moneda)} />
+        {otrasMonedas && <Field label="Pagos en otra moneda (sin descontar)" value={otrasMonedas} />}
         <div className="flex items-center justify-between px-5 py-4">
           <span className="text-xs font-medium text-dark-text/50 uppercase tracking-wider">URL</span>
           {proyecto.url ? (

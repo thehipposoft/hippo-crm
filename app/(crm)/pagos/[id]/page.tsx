@@ -4,14 +4,7 @@ import Link from 'next/link'
 import { wpFetch } from '@/lib/wp'
 import { EliminarPagoButton } from '@/components/pagos/EliminarPagoButton'
 import type { PagoRow } from '@/lib/types'
-
-const formatDate = (iso: string | null): string => {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('es-UY', { day: '2-digit', month: 'short', year: 'numeric' })
-}
-
-const formatMonto = (monto: number, moneda: string): string =>
-  new Intl.NumberFormat('es-UY', { style: 'currency', currency: moneda }).format(monto)
+import { formatFecha, formatMonto } from '@/lib/format'
 
 export default async function PagoDetallePage({
   params,
@@ -62,7 +55,7 @@ export default async function PagoDetallePage({
           </Link>
         </div>
         <Field label="Cliente" value={pago.clienteNombre ?? '—'} />
-        <Field label="Fecha" value={formatDate(pago.fecha)} />
+        <Field label="Fecha" value={formatFecha(pago.fecha)} />
         <Field label="Monto" value={formatMonto(pago.monto, pago.moneda)} />
         <Field label="Moneda" value={pago.moneda} />
         <Field label="Medio de pago" value={pago.medioPago ?? '—'} />

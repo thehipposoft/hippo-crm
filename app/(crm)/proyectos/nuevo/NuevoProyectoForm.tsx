@@ -3,7 +3,7 @@
 import { useActionState, useState } from 'react'
 import Link from 'next/link'
 import { crearProyecto, type NuevoProyectoState } from './actions'
-import { ESTADOS, FRECUENCIAS_PAGO, TIPOS_PROYECTO, type ClienteRow, type TipoProyecto } from '@/lib/types'
+import { ESTADOS, FRECUENCIAS_PAGO, MONEDA_POR_DEFECTO, MONEDAS, TIPOS_PROYECTO, type ClienteRow, type TipoProyecto } from '@/lib/types'
 
 const initialState: NuevoProyectoState = { error: null }
 
@@ -110,15 +110,28 @@ export const NuevoProyectoForm = ({ clientes }: NuevoProyectoFormProps) => {
           )}
         </div>
 
-        <div>
-          <label htmlFor="valor" className="block text-xs font-medium text-dark-text/60 mb-1.5">
-            Valor
-          </label>
-          <input
-            id="valor" name="valor" type="number" step="0.01"
-            className="w-full rounded-lg bg-white border border-slate-200 px-3.5 py-2.5 text-sm text-dark-text placeholder-dark-text/30 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition"
-            placeholder="0.00"
-          />
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="valor" className="block text-xs font-medium text-dark-text/60 mb-1.5">
+              Valor
+            </label>
+            <input
+              id="valor" name="valor" type="number" step="0.01"
+              className="w-full rounded-lg bg-white border border-slate-200 px-3.5 py-2.5 text-sm text-dark-text placeholder-dark-text/30 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition"
+              placeholder="0.00"
+            />
+          </div>
+          <div>
+            <label htmlFor="moneda" className="block text-xs font-medium text-dark-text/60 mb-1.5">
+              Moneda
+            </label>
+            <select
+              id="moneda" name="moneda" defaultValue={MONEDA_POR_DEFECTO}
+              className="w-full rounded-lg bg-white border border-slate-200 px-3.5 py-2.5 text-sm text-dark-text focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition"
+            >
+              {MONEDAS.map((m) => <option key={m} value={m}>{m}</option>)}
+            </select>
+          </div>
         </div>
 
         <div>

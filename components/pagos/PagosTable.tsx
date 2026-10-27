@@ -5,18 +5,7 @@ import { useRouter } from 'next/navigation'
 import type { PagoRow } from '@/lib/types'
 import { PagoRowActions } from './PagoRowActions'
 import { SearchInput } from '@/components/ui/SearchInput'
-
-const formatDate = (iso: string | null): string => {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('es-UY', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  })
-}
-
-const formatMonto = (monto: number, moneda: string | null | undefined): string =>
-  new Intl.NumberFormat('es-UY', { style: 'currency', currency: moneda || 'USD' }).format(monto)
+import { formatFecha, formatMonto } from '@/lib/format'
 
 const truncate = (text: string, max: number): string =>
   text.length > max ? text.slice(0, max) + '…' : text
@@ -117,7 +106,7 @@ export const PagosTable = ({ pagos, mostrarProyecto = true }: PagosTableProps) =
                     {pago.clienteNombre ?? '—'}
                   </td>
                   <td className="px-5 py-4 text-dark-text/60 tabular-nums">
-                    {formatDate(pago.fecha)}
+                    {formatFecha(pago.fecha)}
                   </td>
                   <td className="px-5 py-4 text-dark-text tabular-nums">
                     {formatMonto(pago.monto, pago.moneda)}

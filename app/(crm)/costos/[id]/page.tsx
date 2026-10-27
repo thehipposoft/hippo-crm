@@ -3,14 +3,7 @@ import { notFound, unstable_rethrow } from 'next/navigation'
 import Link from 'next/link'
 import { wpFetch } from '@/lib/wp'
 import { FRECUENCIAS_PAGO, type CostoRow } from '@/lib/types'
-
-const formatDate = (iso: string | null): string => {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('es-UY', { day: '2-digit', month: 'short', year: 'numeric' })
-}
-
-const formatMonto = (monto: number, moneda: string): string =>
-  new Intl.NumberFormat('es-UY', { style: 'currency', currency: moneda }).format(monto)
+import { formatFecha, formatMonto } from '@/lib/format'
 
 const labelFrecuencia = (frecuencia: CostoRow['frecuencia']): string =>
   FRECUENCIAS_PAGO.find((f) => f.value === frecuencia)?.label ?? frecuencia
@@ -53,7 +46,9 @@ export default async function CostoDetallePage({
         <Field label="Moneda" value={costo.moneda} />
         <Field label="Frecuencia" value={labelFrecuencia(costo.frecuencia)} />
         <Field label="Método de pago" value={costo.metodoPago ?? '—'} />
-        <Field label="Fecha de renovación" value={formatDate(costo.fechaRenovacion)} />
+        <Field label="Fecha de renovación" value={formatFecha(costo.fechaRenovacion)} />
+        <Field label="Fecha de alta" value={formatFecha(costo.fechaInicio)} />
+        <Field label="Fecha de baja" value={costo.fechaBaja ? formatFecha(costo.fechaBaja) : 'Activo'} />
       </div>
     </div>
   )

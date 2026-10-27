@@ -126,3 +126,6 @@ Tipos en `lib/types.ts`. WordPress los guarda como custom post types.
 - Cotizaciones
 - Totales consolidados en una moneda (tipo de cambio)
 - Exportar a CSV
+
+### Calidad
+- Tests de la lógica en `lib/` con Vitest (`yarn test`) y CI en GitHub Actions

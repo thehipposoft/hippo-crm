@@ -1,0 +1,27 @@
+# Verifica cada push a master y cada PR antes de que Netlify publique
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+
+      - run: yarn install --frozen-lockfile
+      - run: yarn typecheck
+      - run: yarn lint
+      - run: yarn test
+      # Las páginas son dinámicas: el build no llama a WordPress, la URL es solo para la variable
+      - run: yarn build
+        env:
+          WP_API_URL: https://wp.thehipposoft.com/wp-json/hippo/v1

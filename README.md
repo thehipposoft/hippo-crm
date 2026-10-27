@@ -32,6 +32,7 @@ gráficos financieros. Next.js 16 sobre la API REST de WordPress (`wp.thehipposo
 | `yarn build`     | Build de producción             |
 | `yarn lint`      | ESLint                          |
 | `yarn typecheck` | Chequeo de tipos (tsc --noEmit) |
+| `yarn test`      | Tests de la lógica (Vitest)     |
 
 ## Deploy
 

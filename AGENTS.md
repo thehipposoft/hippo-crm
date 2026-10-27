@@ -45,7 +45,7 @@ lib/
   wp.ts                       → wpFetch, wpGet, wpGetONotFound — único acceso a WordPress
   acciones.ts                 → validarFormulario, enviarAWp (solo server)
   formularios.ts              → EstadoFormulario y tipos compartidos server/cliente
-  validations/                → schemas Zod por entidad (salida = payload de WordPress)
+  validations/                → schemas Zod por entidad (salida = payload de WordPress) y validarFormulario
   auth.ts                     → getToken, getNombreUsuario (solo server)
   cookies.ts                  → nombres de cookies y duración (sin imports: lo usa el proxy)
   types.ts                    → tipos de las entidades y constantes (estados, monedas, etc.)
@@ -63,6 +63,8 @@ lib/
 - `yarn build`      → build de producción
 - `yarn lint`       → ESLint
 - `yarn typecheck`  → tsc --noEmit
+- `yarn test`       → tests de `lib/` (Vitest)
+- `yarn test:watch` → tests en modo watch
 
 ## Variables de entorno necesarias
 En `.env.local` (no se commitea):
@@ -74,7 +76,8 @@ En local se trabaja contra los datos reales de producción: cuidado al crear, ed
 ## Reglas para tareas autónomas
 - No modificar `app/layout.tsx` sin preguntar antes
 - No eliminar archivos sin confirmarlo — preferir renombrar o refactorizar
-- Siempre ejecutar `yarn typecheck` y `yarn lint` antes de dar una tarea por terminada
+- Siempre ejecutar `yarn typecheck`, `yarn lint` y `yarn test` antes de dar una tarea por terminada
+- Todo cambio en la lógica de `lib/` (plata, fechas, validaciones, orden) va con su test
 - Si hay dudas sobre diseño o modelo de datos, preguntar antes de implementar
 - Toda validación de formularios usa Zod (`lib/validations/`) — nunca validación manual
 - Las server actions van en un `actions.ts` junto a la ruta que las usa (`nuevo/`, `[id]/editar/`)
@@ -87,6 +90,15 @@ En local se trabaja contra los datos reales de producción: cuidado al crear, ed
 3. `lib/validations/<entidad>.ts`: agregarlo al schema (snake_case, como lo espera WordPress)
 4. `components/<entidad>/<Entidad>Form.tsx`: agregar el `<Campo>` con el mismo `name`
 5. Mostrarlo en la ficha (`app/(crm)/<entidad>/[id]/page.tsx`) si corresponde
+
+## Tests
+- Vitest, en `lib/**/*.test.ts`, junto al archivo que prueban (`fechas.ts` → `fechas.test.ts`)
+- Corren con zona horaria de Argentina (`vitest.config.mts`): ahí aparecían los bugs de fechas
+- Fechas fijas: pasar `fechaHoy` a las funciones que la aceptan, o `vi.setSystemTime`
+- Datos de prueba con los helpers de `lib/test-utils.ts` (`proyecto()`, `pago()`, `costo()`, `fecha()`)
+- Lo que importa Next (`next/headers`, `next/navigation`) no se testea acá: la lógica
+  testeable vive en módulos sin dependencias de Next (ej. `lib/validations/validar.ts`)
+- CI: `.github/workflows/ci.yml` corre typecheck, lint, tests y build en cada push a master y en cada PR
 
 ## Convenciones de formularios
 - Un formulario por entidad, con props `accion`, `textoBoton` y la entidad opcional

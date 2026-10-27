@@ -1,9 +1,10 @@
 import Link from 'next/link'
 import { Field } from '@/components/ui/Field'
-import { wpGet, wpGetONotFound } from '@/lib/wp'
+import { wpGet, wpGetONotFound, wpGetOpcional } from '@/lib/wp'
+import { TareasProyecto } from '@/components/tareas/TareasProyecto'
 import { StatusBadge } from '@/components/proyectos/StatusBadge'
 import { PagosTable } from '@/components/pagos/PagosTable'
-import { FRECUENCIAS_PAGO, TIPOS_PROYECTO, type FrecuenciaPago, type PagoRow, type ProyectoRow } from '@/lib/types'
+import { FRECUENCIAS_PAGO, TIPOS_PROYECTO, type FrecuenciaPago, type PagoRow, type ProyectoRow, type TareaRow } from '@/lib/types'
 import { formatFecha, formatMonto } from '@/lib/format'
 import { resumenPendiente } from '@/lib/proyectos'
 import { SaldoProyecto } from '@/components/proyectos/SaldoProyecto'
@@ -35,7 +36,10 @@ export default async function ProyectoDetallePage({
   const { id } = await params
   const proyecto = await wpGetONotFound<ProyectoRow>(`/proyectos/${id}`)
 
-  const pagos = await wpGet<PagoRow[]>(`/proyectos/${id}/pagos`)
+  const [pagos, tareas] = await Promise.all([
+    wpGet<PagoRow[]>(`/proyectos/${id}/pagos`),
+    wpGetOpcional<TareaRow[]>('/tareas', []),
+  ])
   const resumen = resumenPendiente(proyecto, pagos)
   const porUnidad = cobraPorUnidad(proyecto)
   const otrasMonedas = Object.entries(resumen.otrasMonedas)
@@ -116,6 +120,8 @@ export default async function ProyectoDetallePage({
           </p>
         </div>
       </div>
+
+      <TareasProyecto proyectoId={proyecto.id} tareas={tareas} />
 
       {porUnidad && <SeccionUnidades proyecto={proyecto} moneda={resumen.moneda} />}
 

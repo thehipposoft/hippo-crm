@@ -62,6 +62,7 @@ Tipos en `lib/types.ts`. WordPress los guarda como custom post types.
 | Proyecto | `GET/POST /proyectos`, `GET/PUT /proyectos/:id`, `GET /proyectos/:id/pagos` | clienteId, estado, fechaInicio, deadline, tipoProyecto (ON_OFF \| RECURRENTE), valor, moneda, frecuenciaPago, url, accionPendiente |
 | Pago     | `GET/POST /pagos`, `GET/PUT/DELETE /pagos/:id`               | proyectoId, fecha, monto, moneda, medioPago, notas |
 | Unidad   | `POST /unidades`, `GET/PUT/DELETE /unidades/:id` (vienen embebidas en el proyecto como `unidades`) | proyectoId, nombre, fechaAlta, fechaBaja, notas |
+| Tarea    | `GET/POST /tareas`, `GET/PUT/DELETE /tareas/:id`, `GET /usuarios` (equipo: usuarios que entraron al CRM) | titulo, descripcion, estado (PENDIENTE \| EN_CURSO \| BLOQUEADA \| HECHA), prioridad (ALTA \| MEDIA \| BAJA), responsableId, fechaLimite, proyectoId, fechaHecha |
 | Costo    | `GET/POST /costos`, `GET/PUT /costos/:id`                    | nombreCosto, monto, moneda, frecuencia, metodoPago, fechaRenovacion, fechaInicio, fechaBaja |
 
 - Link público: `POST/DELETE /clientes/:id/link-publico` (con login) y
@@ -131,6 +132,7 @@ Tipos en `lib/types.ts`. WordPress los guarda como custom post types.
 - Registro rápido de pagos con monto sugerido
 - Recibos de pago y estado de cuenta (PDF, español/inglés) y link público para el cliente
 - Cobro por unidad (casillas de correo): activas por mes, altas y bajas
+- Tareas del equipo: tablero por estado, responsables, prioridad, fecha límite, vínculo a proyectos
 - Dashboard "Hoy": por cobrar, cobrado y recurrentes del mes, deadlines, renovaciones,
   acciones pendientes y datos incompletos
 

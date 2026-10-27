@@ -154,3 +154,29 @@ describe('unidades', () => {
     expect(errores(r)).toEqual({ fecha_baja: 'La baja no puede ser anterior al alta.' })
   })
 })
+
+describe('tareaSchema', () => {
+  it('defaults y vacíos → null', async () => {
+    const { tareaSchema } = await import('./tarea')
+    const r = validarFormulario(tareaSchema, formData({ titulo: 'Definir hosting', responsable_id: '', proyecto_id: '', fecha_limite: '' }))
+    expect(r.ok && r.datos).toEqual({
+      titulo: 'Definir hosting',
+      descripcion: null,
+      estado: 'PENDIENTE',
+      prioridad: 'MEDIA',
+      responsable_id: null,
+      proyecto_id: null,
+      fecha_limite: null,
+    })
+  })
+
+  it('convierte ids y valida estado', async () => {
+    const { tareaSchema } = await import('./tarea')
+    const ok = validarFormulario(tareaSchema, formData({ titulo: 'x', responsable_id: '3', proyecto_id: '10', estado: 'EN_CURSO' }))
+    expect(ok.ok && [ok.datos.responsable_id, ok.datos.proyecto_id, ok.datos.estado]).toEqual([3, 10, 'EN_CURSO'])
+    expect(errores(validarFormulario(tareaSchema, formData({ titulo: ' ', estado: 'LISTO' })))).toEqual({
+      titulo: 'El título es obligatorio.',
+      estado: 'Opción inválida.',
+    })
+  })
+})

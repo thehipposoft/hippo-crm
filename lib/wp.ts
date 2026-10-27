@@ -41,3 +41,13 @@ export const wpGetONotFound = async <T>(path: string): Promise<T> => {
     notFound()
   }
 }
+
+// Para datos secundarios (ej. tareas en el dashboard): si falla, se muestra la página igual
+export const wpGetOpcional = async <T>(path: string, porDefecto: T): Promise<T> => {
+  try {
+    return await wpGet<T>(path)
+  } catch (error) {
+    unstable_rethrow(error)
+    return porDefecto
+  }
+}

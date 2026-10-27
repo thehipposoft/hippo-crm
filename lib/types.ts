@@ -110,3 +110,43 @@ export const FRECUENCIAS_PAGO: { value: FrecuenciaPago; label: string }[] = [
   { value: 'MENSUAL', label: 'Mensual' },
   { value: 'ANUAL', label: 'Anual' },
 ]
+
+// ==== Tareas (to-do del equipo) ====
+
+export const ESTADO_TAREA_VALUES = ['PENDIENTE', 'EN_CURSO', 'BLOQUEADA', 'HECHA'] as const
+export type EstadoTarea = (typeof ESTADO_TAREA_VALUES)[number]
+
+export const ESTADOS_TAREA: { value: EstadoTarea; label: string }[] = [
+  { value: 'PENDIENTE', label: 'Pendiente' },
+  { value: 'EN_CURSO', label: 'En curso' },
+  { value: 'BLOQUEADA', label: 'Bloqueada' },
+  { value: 'HECHA', label: 'Hecha' },
+]
+
+export const PRIORIDAD_VALUES = ['ALTA', 'MEDIA', 'BAJA'] as const
+export type Prioridad = (typeof PRIORIDAD_VALUES)[number]
+
+export const PRIORIDADES: { value: Prioridad; label: string }[] = [
+  { value: 'ALTA', label: 'Alta' },
+  { value: 'MEDIA', label: 'Media' },
+  { value: 'BAJA', label: 'Baja' },
+]
+
+export type TareaRow = {
+  id: number
+  titulo: string
+  descripcion: string | null
+  estado: EstadoTarea
+  prioridad: Prioridad
+  responsableId: number | null
+  responsableNombre: string | null
+  fechaLimite: string | null
+  proyectoId: number | null
+  proyectoNombre: string | null
+  clienteNombre: string | null
+  // 'YYYY-MM-DD'
+  creada: string
+  fechaHecha: string | null
+}
+
+export type UsuarioRow = { id: number; nombre: string }

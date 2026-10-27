@@ -1,6 +1,6 @@
 // Helpers solo para tests (no se importan desde la app)
 import type { FechaCalendario } from './fechas'
-import type { CostoRow, PagoRow, ProyectoRow, UnidadRow } from './types'
+import type { CostoRow, PagoRow, ProyectoRow, TareaRow, UnidadRow } from './types'
 
 // Mes 1-12, como se escribe a mano
 export const fecha = (anio: number, mes: number, dia: number): FechaCalendario => ({ anio, mes: mes - 1, dia })
@@ -67,3 +67,20 @@ export const unidad = (datos: Partial<UnidadRow> = {}): UnidadRow => ({
 // Proyecto cobrado por casilla: USD 5 por casilla por mes
 export const porCasilla = (unidades: UnidadRow[], datos: Partial<ProyectoRow> = {}): ProyectoRow =>
   recurrente({ unidad: 'casilla', valor: 5, frecuenciaPago: 'MENSUAL', fechaInicio: '2026-01-01', unidades, ...datos })
+
+export const tarea = (datos: Partial<TareaRow> = {}): TareaRow => ({
+  id: 1,
+  titulo: 'Tarea',
+  descripcion: null,
+  estado: 'PENDIENTE',
+  prioridad: 'MEDIA',
+  responsableId: null,
+  responsableNombre: null,
+  fechaLimite: null,
+  proyectoId: null,
+  proyectoNombre: null,
+  clienteNombre: null,
+  creada: '2026-10-01',
+  fechaHecha: null,
+  ...datos,
+})

@@ -12,9 +12,10 @@ import {
   recurrentesDelMes,
   renovacionesProximas,
 } from '@/lib/dashboard'
-import { diasEntre, hoy } from '@/lib/fechas'
+import { diasEntre, hoy, parseFecha } from '@/lib/fechas'
+import { DIAS_AVISO_TAREAS, diasParaVencer, tareasUrgentes } from '@/lib/tareas'
 import { formatCuota, formatFechaLarga, formatMonto, SUFIJO_FRECUENCIA } from '@/lib/format'
-import type { CostoRow, Moneda, PagoRow, ProyectoRow } from '@/lib/types'
+import type { CostoRow, Moneda, PagoRow, ProyectoRow, TareaRow } from '@/lib/types'
 import { FechaRelativa, FilaLista, ListaSeccion, Seccion, TarjetaMontos } from '@/components/ui/Paneles'
 
 const MAX_DEUDAS = 8
@@ -25,9 +26,10 @@ interface HomeDashboardProps {
   proyectos: ProyectoRow[]
   pagos: PagoRow[]
   costos: CostoRow[]
+  tareas: TareaRow[]
 }
 
-export const HomeDashboard = ({ userName, proyectos, pagos, costos }: HomeDashboardProps) => {
+export const HomeDashboard = ({ userName, proyectos, pagos, costos, tareas }: HomeDashboardProps) => {
   const fechaHoy = hoy()
   const deadlines = deadlinesProximos(proyectos, fechaHoy)
   const renovaciones = renovacionesProximas(costos, fechaHoy)
@@ -35,6 +37,7 @@ export const HomeDashboard = ({ userName, proyectos, pagos, costos }: HomeDashbo
   const deuda = porCobrar(proyectos, pagos, fechaHoy)
   const recurrentes = recurrentesDelMes(proyectos, pagos, fechaHoy)
   const incompletos = datosIncompletos(proyectos)
+  const urgentes = tareasUrgentes(tareas, fechaHoy)
 
   const aCobrarEsteMes: Partial<Record<Moneda, number>> = {}
   for (const r of recurrentes) {
@@ -197,6 +200,32 @@ export const HomeDashboard = ({ userName, proyectos, pagos, costos }: HomeDashbo
                   lateral={<FechaRelativa fecha={fecha} dias={dias} />}
                 />
               ))}
+            </ListaSeccion>
+          )}
+        </Seccion>
+
+        <Seccion
+          titulo="Tareas"
+          descripcion={`Vencidas y próximos ${DIAS_AVISO_TAREAS} días`}
+          cantidad={urgentes.length}
+          verTodoHref="/tareas"
+          vacio="Ninguna tarea vence pronto."
+        >
+          {urgentes.length > 0 && (
+            <ListaSeccion>
+              {urgentes.map((t) => {
+                const dias = diasParaVencer(t, fechaHoy) ?? 0
+                const limite = parseFecha(t.fechaLimite)
+                return (
+                  <FilaLista
+                    key={t.id}
+                    href={`/tareas/${t.id}/editar`}
+                    titulo={t.titulo}
+                    detalle={[t.responsableNombre ?? 'Sin asignar', t.proyectoNombre].filter(Boolean).join(' · ')}
+                    lateral={limite && <FechaRelativa fecha={limite} dias={dias} />}
+                  />
+                )
+              })}
             </ListaSeccion>
           )}
         </Seccion>

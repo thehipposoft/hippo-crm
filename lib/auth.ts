@@ -9,3 +9,7 @@ export const getNombreUsuario = async (): Promise<string> => {
   const nombre = (await cookies()).get(USER_NAME_COOKIE)?.value?.trim()
   return nombre?.split(/\s+/)[0] || 'Usuario'
 }
+
+// display_name completo de WordPress (para reconocer "mis" tareas)
+export const getNombreCompletoUsuario = async (): Promise<string | null> =>
+  (await cookies()).get(USER_NAME_COOKIE)?.value?.trim() || null

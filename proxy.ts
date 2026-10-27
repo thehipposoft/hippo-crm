@@ -1,8 +1,15 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { TOKEN_COOKIE } from './lib/cookies'
 
+const RUTAS_PUBLICAS = ['/estado/']
+
 // Chequeo optimista de sesión: solo mira si existe la cookie. WordPress valida el token.
 export const proxy = (request: NextRequest) => {
+  // Links públicos del estado de cuenta: los ve el cliente, sin sesión
+  if (RUTAS_PUBLICAS.some((ruta) => request.nextUrl.pathname.startsWith(ruta))) {
+    return NextResponse.next()
+  }
+
   const token = request.cookies.get(TOKEN_COOKIE)
   const isLoginPage = request.nextUrl.pathname.startsWith('/login')
 

@@ -20,6 +20,17 @@ export type ClienteRow = {
   telefono: string | null
   emailContacto: string | null
   pais: string | null
+  // Token del link público del estado de cuenta; null = sin link
+  tokenPublico?: string | null
+}
+
+// Lo que ve el cliente en el link público (sin datos internos)
+export type ClientePublico = Pick<ClienteRow, 'nombre' | 'contacto' | 'emailContacto' | 'pais'>
+
+export type EstadoPublico = {
+  cliente: ClientePublico
+  proyectos: ProyectoRow[]
+  pagos: PagoRow[]
 }
 
 export type ProyectoRow = {

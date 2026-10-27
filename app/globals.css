@@ -21,3 +21,15 @@ body {
   background: var(--brand-white);
   color: var(--dark-text);
 }
+
+/* Recibos y estados de cuenta: "Descargar PDF" usa la impresión del navegador */
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm;
+  }
+
+  body {
+    background: white;
+  }
+}

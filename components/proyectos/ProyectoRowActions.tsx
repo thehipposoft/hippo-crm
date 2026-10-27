@@ -1,9 +1,13 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { cambiarEstadoProyecto } from '@/app/(crm)/proyectos/[id]/actions'
-import { CLASES_ITEM_MENU, RowActions } from '@/components/ui/RowActions'
+import { CLASES_ITEM_MENU, ItemMenu, RowActions } from '@/components/ui/RowActions'
 import { ESTADOS, type Estado } from '@/lib/types'
+
+const ICONO_PAGO = 'M12 4v16m8-8H4'
 
 interface ProyectoRowActionsProps {
   proyectoId: number
@@ -11,6 +15,7 @@ interface ProyectoRowActionsProps {
 }
 
 export const ProyectoRowActions = ({ proyectoId, estado }: ProyectoRowActionsProps) => {
+  const pathname = usePathname()
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
@@ -34,6 +39,14 @@ export const ProyectoRowActions = ({ proyectoId, estado }: ProyectoRowActionsPro
         editarHref={`/proyectos/${proyectoId}/editar`}
         extra={(cerrar) => (
           <>
+            <Link
+              href={`/pagos/nuevo?proyecto=${proyectoId}&volver=${pathname}`}
+              onClick={cerrar}
+              role="menuitem"
+              className={CLASES_ITEM_MENU}
+            >
+              <ItemMenu icono={ICONO_PAGO}>Registrar pago</ItemMenu>
+            </Link>
             <div className="my-1 border-t border-slate-200" />
             <p className="px-3.5 pb-1 pt-1.5 text-xs font-medium uppercase tracking-wider text-dark-text/40">
               Cambiar estado

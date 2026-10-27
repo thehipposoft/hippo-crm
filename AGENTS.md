@@ -26,6 +26,10 @@ app/
     loading.tsx               → esqueleto mientras carga WordPress
     error.tsx                 → error con botón de reintentar
     not-found.tsx             → 404 (fichas inexistentes)
+  documentos/                 → recibos y estados de cuenta (con login, sin sidebar)
+    recibo/[pagoId]/
+    estado-de-cuenta/[clienteId]/   (+ LinkPublico y sus actions)
+  estado/[token]/             → link público del cliente: estado de cuenta y recibos (SIN login)
   api/login, api/logout       → route handlers de sesión
 proxy.ts                      → protección de rutas (ex middleware.ts, convención de Next 16)
 
@@ -34,12 +38,14 @@ components/
   ui/                         → Formulario (Formulario, Campo, Input, Select, Textarea,
                                 FilaCampos), PaginaFormulario, PageHeader, Field, SearchInput,
                                 FilaTabla + ContenedorTabla, Orden (Th, ThOrdenable), RowActions,
-                                ConfirmDialog
+                                ConfirmDialog, Paneles (Seccion, FilaLista, FechaRelativa, TarjetaMontos),
+                                useParamsUrl
   clientes/ proyectos/ pagos/ costos/
                               → <Entidad>Form, <Entidades>Table (+ RowActions propios
                                 en pagos y proyectos)
   graficos/                   → charts (Recharts) y cards del tablero
-  home/                       → HomeDashboard + piezas (Seccion, FilaLista, FechaRelativa, TarjetaMontos)
+  home/                       → HomeDashboard
+  documentos/                 → HojaDocumento, BarraDocumento, Recibo, EstadoDeCuentaDoc
 
 lib/
   wp.ts                       → wpFetch, wpGet, wpGetONotFound — único acceso a WordPress
@@ -56,6 +62,12 @@ lib/
   analytics.ts                → agregaciones para los gráficos y costos vigentes
   navegacion.ts               → ítems del menú
   orden.ts                    → orden de tablas (estable, vacíos al final)
+  periodos.ts                 → períodos de fechas (este mes, año pasado, rango…)
+  csv.ts                      → exportar CSV (;  coma decimal, BOM)
+  clientes.ts                 → resumen financiero del cliente
+  empresa.ts                  → datos del emisor en recibos y estados de cuenta
+  publico.ts                  → datos del link público (token)
+  documentos/                 → idioma (es/en), textos y armado del estado de cuenta
 ```
 
 ## Comandos
@@ -122,6 +134,15 @@ En local se trabaja contra los datos reales de producción: cuidado al crear, ed
   fechas: con `claveFecha()`. Los vacíos van siempre al final
 - Confirmaciones: `ConfirmDialog`, nunca `window.confirm` ni `window.alert`
 - Mobile-first: padding `px-4 sm:px-8`, grillas que colapsan a una columna
+
+## Documentos y link público
+- "Descargar PDF" = impresión del navegador (`window.print()`); la barra lleva `print:hidden`
+- Idioma: `?idioma=es|en`; si no viene, según el país del cliente (`idiomaPara`)
+- Montos en documentos con código de moneda (`montoDoc`): "USD 1.500,00", nunca "$"
+- Número de recibo = ID del pago en WordPress (`R-000123`)
+- `/estado/[token]` es público (excepción en `proxy.ts`): nunca mostrar notas de pagos,
+  acciones pendientes ni datos que no sean del cliente del token. WordPress ya los quita.
+- Datos del emisor (nombre, web, email, ID fiscal) en `lib/empresa.ts`
 
 ## Convenciones de estados
 Los colores de cada estado están en `components/proyectos/StatusBadge.tsx`:

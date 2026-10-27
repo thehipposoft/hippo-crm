@@ -154,3 +154,29 @@ export const cobroRecurrente = (
     proximoVencimiento,
   }
 }
+
+const CENTAVOS = 100
+
+export type SugerenciaPago = {
+  moneda: Moneda
+  monto: number | null
+  // De dónde sale el monto, para explicarlo en el formulario
+  origen: 'CUOTA' | 'SALDO' | null
+}
+
+// Recurrente: una cuota. Pago único: lo que falta pagar, si falta algo.
+export const sugerenciaPago = (
+  proyecto: ProyectoRow,
+  pagos: PagoRow[],
+  fechaHoy: FechaCalendario = hoy()
+): SugerenciaPago => {
+  const resumen = resumenPendiente(proyecto, pagos, fechaHoy)
+  if (proyecto.tipoProyecto === 'RECURRENTE' && proyecto.valor > 0) {
+    return { moneda: resumen.moneda, monto: proyecto.valor, origen: 'CUOTA' }
+  }
+  const saldo = saldoProyecto(resumen)
+  if (saldo.tipo === 'PENDIENTE') {
+    return { moneda: resumen.moneda, monto: Math.round(saldo.monto * CENTAVOS) / CENTAVOS, origen: 'SALDO' }
+  }
+  return { moneda: resumen.moneda, monto: null, origen: null }
+}

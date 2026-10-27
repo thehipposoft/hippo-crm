@@ -26,6 +26,12 @@ export default async function PagoDetallePage({
         </div>
         <div className="flex items-start gap-2">
           <Link
+            href={`/documentos/recibo/${pago.id}`}
+            className="rounded-lg border border-slate-200 bg-white hover:bg-brand-blue/10 px-4 py-2 text-sm font-medium text-dark-text transition-colors"
+          >
+            Recibo
+          </Link>
+          <Link
             href={`/pagos/${pago.id}/editar`}
             className="rounded-lg border border-slate-200 bg-white hover:bg-brand-blue/10 px-4 py-2 text-sm font-medium text-dark-text transition-colors"
           >

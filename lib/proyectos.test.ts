@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { aIso } from './fechas'
-import { cobroRecurrente, monedaProyecto, periodosAdeudados, resumenPendiente, saldoProyecto } from './proyectos'
+import { cobroRecurrente, monedaProyecto, periodosAdeudados, resumenPendiente, saldoProyecto, sugerenciaPago } from './proyectos'
 import { fecha, pago, proyecto, recurrente } from './test-utils'
 
 const HOY = fecha(2026, 10, 26)
@@ -102,5 +102,20 @@ describe('cobroRecurrente', () => {
   it('contrato terminado: sin cuotas ni próximo vencimiento', () => {
     const c = cobroRecurrente(recurrente({ deadline: '2026-10-10' }), [], HOY)
     expect(c).toMatchObject({ cuotasEsteMes: 0, proximoVencimiento: null })
+  })
+})
+
+describe('sugerenciaPago', () => {
+  it('recurrente: una cuota', () => {
+    expect(sugerenciaPago(recurrente({ valor: 300, moneda: 'AUD' }), [], HOY)).toEqual({ moneda: 'AUD', monto: 300, origen: 'CUOTA' })
+  })
+
+  it('pago único: el saldo pendiente, redondeado a centavos', () => {
+    const p = proyecto({ valor: 1000 })
+    expect(sugerenciaPago(p, [pago({ monto: 333.333 })], HOY)).toEqual({ moneda: 'USD', monto: 666.67, origen: 'SALDO' })
+  })
+
+  it('pago único ya pagado: sin monto sugerido', () => {
+    expect(sugerenciaPago(proyecto({ valor: 1000 }), [pago({ monto: 1000 })], HOY)).toEqual({ moneda: 'USD', monto: null, origen: null })
   })
 })

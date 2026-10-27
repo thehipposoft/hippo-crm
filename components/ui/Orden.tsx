@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { usePathname, useSearchParams } from 'next/navigation'
+import { useParamsUrl } from './useParamsUrl'
 import { ordenarPor, type ColumnaOrden, type Direccion } from '@/lib/orden'
 
 const PARAM_ORDEN = 'orden'
@@ -16,23 +16,19 @@ export const useOrdenTabla = <T, K extends string>(
   columnas: Record<K, ColumnaOrden<T>>,
   inicial: EstadoOrden<NoInfer<K>>
 ) => {
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
+  const params = useParamsUrl()
 
-  const pedida = searchParams.get(PARAM_ORDEN)
+  const pedida = params.get(PARAM_ORDEN)
   const esValida = (id: string | null): id is K => id !== null && Object.hasOwn(columnas, id)
   const columna = esValida(pedida) ? pedida : inicial.columna
-  const dirPedida = searchParams.get(PARAM_DIR)
+  const dirPedida = params.get(PARAM_DIR)
   const direccion: Direccion =
     dirPedida === 'asc' || dirPedida === 'desc' ? dirPedida : esValida(pedida) ? columnas[columna].direccionInicial : inicial.direccion
 
   const cambiarOrden = (id: K) => {
     const nuevaDireccion: Direccion =
       id === columna ? (direccion === 'asc' ? 'desc' : 'asc') : columnas[id].direccionInicial
-    const params = new URLSearchParams(searchParams.toString())
-    params.set(PARAM_ORDEN, id)
-    params.set(PARAM_DIR, nuevaDireccion)
-    window.history.replaceState(null, '', `${pathname}?${params.toString()}`)
+    params.set({ [PARAM_ORDEN]: id, [PARAM_DIR]: nuevaDireccion })
   }
 
   const ordenar = (items: readonly T[]): T[] => ordenarPor(items, columnas[columna], direccion)

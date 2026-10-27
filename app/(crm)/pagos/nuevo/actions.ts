@@ -3,7 +3,7 @@
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { enviarAWp, validarFormulario } from '@/lib/acciones'
-import type { EstadoFormulario } from '@/lib/formularios'
+import { destinoSeguro, type EstadoFormulario } from '@/lib/formularios'
 import { pagoSchema } from '@/lib/validations/pago'
 
 export async function crearPago(_estado: EstadoFormulario, formData: FormData): Promise<EstadoFormulario> {
@@ -14,5 +14,7 @@ export async function crearPago(_estado: EstadoFormulario, formData: FormData): 
   if (error) return error
 
   revalidatePath('/pagos')
-  redirect('/pagos')
+  revalidatePath(`/proyectos/${validacion.datos.proyecto_id}`)
+  // Vuelve a donde se abrió el formulario (ficha del proyecto, listado, etc.)
+  redirect(destinoSeguro(formData.get('volver'), '/pagos'))
 }

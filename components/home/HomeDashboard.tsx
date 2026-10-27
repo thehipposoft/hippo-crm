@@ -15,7 +15,7 @@ import {
 import { diasEntre, hoy } from '@/lib/fechas'
 import { formatFechaLarga, formatMonto, SUFIJO_FRECUENCIA } from '@/lib/format'
 import type { CostoRow, Moneda, PagoRow, ProyectoRow } from '@/lib/types'
-import { FechaRelativa, FilaLista, ListaSeccion, Seccion, TarjetaMontos } from './piezas'
+import { FechaRelativa, FilaLista, ListaSeccion, Seccion, TarjetaMontos } from '@/components/ui/Paneles'
 
 const MAX_DEUDAS = 8
 const MAX_INCOMPLETOS = 6

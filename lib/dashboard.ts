@@ -17,7 +17,7 @@ export const DIAS_AVISO_RENOVACION = 30
 // Proyectos vivos: tienen deadlines y acciones por hacer
 const ESTADOS_ABIERTOS: readonly Estado[] = ['PROSPECTO', 'EN_NEGOCIACION', 'ACTIVO', 'EN_PAUSA']
 // Estados donde el saldo es plata que nos deben (no un presupuesto)
-const ESTADOS_CON_DEUDA: readonly Estado[] = ['ACTIVO', 'EN_PAUSA', 'CERRADO']
+export const ESTADOS_CON_DEUDA: readonly Estado[] = ['ACTIVO', 'EN_PAUSA', 'CERRADO']
 
 const estaAbierto = (p: ProyectoRow): boolean => ESTADOS_ABIERTOS.includes(p.estado)
 

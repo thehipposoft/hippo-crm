@@ -63,6 +63,9 @@ Tipos en `lib/types.ts`. WordPress los guarda como custom post types.
 | Pago     | `GET/POST /pagos`, `GET/PUT/DELETE /pagos/:id`               | proyectoId, fecha, monto, moneda, medioPago, notas |
 | Costo    | `GET/POST /costos`, `GET/PUT /costos/:id`                    | nombreCosto, monto, moneda, frecuencia, metodoPago, fechaRenovacion, fechaInicio, fechaBaja |
 
+- Link público: `POST/DELETE /clientes/:id/link-publico` (con login) y
+  `GET /publico/estado-de-cuenta/:token` (sin login, sin notas ni acciones internas).
+  El cliente trae `tokenPublico` cuando tiene link activo.
 - El **estado** es del proyecto, no del cliente:
   PROSPECTO | EN_NEGOCIACION | ACTIVO | EN_PAUSA | CERRADO | PERDIDO
 - Monedas: USD | ARS | AUD | EUR. Frecuencias: SEMANAL | MENSUAL | ANUAL
@@ -118,6 +121,10 @@ Tipos en `lib/types.ts`. WordPress los guarda como custom post types.
 - Loading, error y 404; layout mobile; navegación con ítem activo
 - Cambio rápido de estado de un proyecto desde el listado
 - Saldo por proyecto (pendiente / al día / a favor)
+- Ficha de cliente con resumen financiero
+- Pagos filtrados por período y exportación a CSV
+- Registro rápido de pagos con monto sugerido
+- Recibos de pago y estado de cuenta (PDF, español/inglés) y link público para el cliente
 - Dashboard "Hoy": por cobrar, cobrado y recurrentes del mes, deadlines, renovaciones,
   acciones pendientes y datos incompletos
 
@@ -125,7 +132,6 @@ Tipos en `lib/types.ts`. WordPress los guarda como custom post types.
 - Notas y timeline por cliente
 - Cotizaciones
 - Totales consolidados en una moneda (tipo de cambio)
-- Exportar a CSV
 
 ### Calidad
 - Tests de la lógica en `lib/` con Vitest (`yarn test`) y CI en GitHub Actions

@@ -2,35 +2,44 @@
 
 import { useState, useTransition } from 'react'
 import { eliminarPago } from '@/app/(crm)/pagos/[id]/actions'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 
 interface EliminarPagoButtonProps {
   pagoId: number
 }
 
 export const EliminarPagoButton = ({ pagoId }: EliminarPagoButtonProps) => {
-  const [isPending, startTransition] = useTransition()
+  const [abierto, setAbierto] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [pending, startTransition] = useTransition()
 
-  const handleClick = () => {
-    if (!window.confirm('¿Eliminar este pago? Esta acción no se puede deshacer desde la app.')) return
-
+  const confirmar = () => {
+    setError(null)
     startTransition(async () => {
-      const result = await eliminarPago(pagoId)
-      if (result?.error) setError(result.error)
+      const resultado = await eliminarPago(pagoId, '/pagos')
+      if (resultado.error) setError(resultado.error)
     })
   }
 
   return (
-    <div className="flex flex-col items-end gap-1.5">
+    <>
       <button
         type="button"
-        onClick={handleClick}
-        disabled={isPending}
-        className="rounded-lg border border-rose-200 bg-white hover:bg-rose-50 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 text-sm font-medium text-rose-600 transition-colors"
+        onClick={() => setAbierto(true)}
+        className="rounded-lg border border-rose-200 bg-white px-4 py-2 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50"
       >
-        {isPending ? 'Eliminando...' : 'Eliminar'}
+        Eliminar
       </button>
-      {error && <p className="text-xs text-rose-600">{error}</p>}
-    </div>
+      <ConfirmDialog
+        abierto={abierto}
+        titulo="¿Eliminar este pago?"
+        mensaje="Va a la papelera de WordPress: desde la app no se puede deshacer."
+        textoConfirmar="Eliminar"
+        pending={pending}
+        error={error}
+        onConfirmar={confirmar}
+        onCancelar={() => setAbierto(false)}
+      />
+    </>
   )
 }

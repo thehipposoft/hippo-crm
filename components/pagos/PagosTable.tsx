@@ -1,10 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import type { PagoRow } from '@/lib/types'
 import { PagoRowActions } from './PagoRowActions'
 import { SearchInput } from '@/components/ui/SearchInput'
+import { ContenedorTabla, FilaTabla } from '@/components/ui/FilaTabla'
 import { formatFecha, formatMonto } from '@/lib/format'
 
 const truncate = (text: string, max: number): string =>
@@ -24,7 +25,6 @@ interface PagosTableProps {
 }
 
 export const PagosTable = ({ pagos, mostrarProyecto = true }: PagosTableProps) => {
-  const router = useRouter()
   const [busqueda, setBusqueda] = useState('')
 
   const filtrados = pagos.filter((p) => coincide(p, busqueda))
@@ -51,8 +51,8 @@ export const PagosTable = ({ pagos, mostrarProyecto = true }: PagosTableProps) =
         <SearchInput value={busqueda} onChange={setBusqueda} placeholder="Buscar por proyecto, cliente, notas..." />
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-        <table className="w-full text-sm">
+      <ContenedorTabla>
+        <table className="w-full min-w-3xl text-sm">
           <thead>
             <tr className="border-b border-slate-200 bg-brand-white">
               {mostrarProyecto && (
@@ -90,11 +90,7 @@ export const PagosTable = ({ pagos, mostrarProyecto = true }: PagosTableProps) =
               </tr>
             ) : (
               filtrados.map((pago) => (
-                <tr
-                  key={pago.id}
-                  onClick={() => router.push(`/pagos/${pago.id}`)}
-                  className="cursor-pointer border-b border-slate-100 last:border-0 hover:bg-brand-white transition-colors"
-                >
+                <FilaTabla key={pago.id} href={`/pagos/${pago.id}`}>
                   {mostrarProyecto && (
                     <td className="px-5 py-4">
                       <span className="font-medium text-dark-text">
@@ -108,8 +104,10 @@ export const PagosTable = ({ pagos, mostrarProyecto = true }: PagosTableProps) =
                   <td className="px-5 py-4 text-dark-text/60 tabular-nums">
                     {formatFecha(pago.fecha)}
                   </td>
-                  <td className="px-5 py-4 text-dark-text tabular-nums">
-                    {formatMonto(pago.monto, pago.moneda)}
+                  <td className="px-5 py-4 tabular-nums">
+                    <Link href={`/pagos/${pago.id}`} className="font-medium text-dark-text hover:text-brand-blue">
+                      {formatMonto(pago.monto, pago.moneda)}
+                    </Link>
                   </td>
                   <td className="px-5 py-4 text-dark-text/60">
                     {pago.medioPago ?? '—'}
@@ -117,15 +115,15 @@ export const PagosTable = ({ pagos, mostrarProyecto = true }: PagosTableProps) =
                   <td className="px-5 py-4 max-w-xs text-dark-text/60">
                     {pago.notas ? truncate(pago.notas, 60) : '—'}
                   </td>
-                  <td className="px-3 py-4" onClick={(e) => e.stopPropagation()}>
+                  <td className="px-3 py-4" data-sin-navegar>
                     <PagoRowActions pagoId={pago.id} />
                   </td>
-                </tr>
+                </FilaTabla>
               ))
             )}
           </tbody>
         </table>
-      </div>
+      </ContenedorTabla>
     </div>
   )
 }

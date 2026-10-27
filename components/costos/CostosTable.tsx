@@ -1,8 +1,9 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { FRECUENCIAS_PAGO, type CostoRow } from '@/lib/types'
-import { CostoRowActions } from './CostoRowActions'
+import { ContenedorTabla, FilaTabla } from '@/components/ui/FilaTabla'
+import { RowActions } from '@/components/ui/RowActions'
 import { formatFecha, formatMonto } from '@/lib/format'
 import { costoVigenteEn } from '@/lib/analytics'
 
@@ -14,11 +15,10 @@ interface CostosTableProps {
 }
 
 export const CostosTable = ({ costos }: CostosTableProps) => {
-  const router = useRouter()
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-      <table className="w-full text-sm">
+    <ContenedorTabla>
+      <table className="w-full min-w-3xl text-sm">
         <thead>
           <tr className="border-b border-slate-200 bg-brand-white">
             <th className="px-5 py-3.5 text-left text-xs font-medium text-dark-text/50 uppercase tracking-wider">
@@ -50,15 +50,11 @@ export const CostosTable = ({ costos }: CostosTableProps) => {
             costos.map((costo) => {
               const vigente = costoVigenteEn(costo)
               return (
-              <tr
-                key={costo.id}
-                onClick={() => router.push(`/costos/${costo.id}`)}
-                className={`cursor-pointer border-b border-slate-100 last:border-0 hover:bg-brand-white transition-colors ${vigente ? '' : 'opacity-50'}`}
-              >
+              <FilaTabla key={costo.id} href={`/costos/${costo.id}`} className={vigente ? '' : 'opacity-50'}>
                 <td className="px-5 py-4">
-                  <span className="font-medium text-dark-text">
+                  <Link href={`/costos/${costo.id}`} className="font-medium text-dark-text hover:text-brand-blue">
                     {costo.nombreCosto}
-                  </span>
+                  </Link>
                   {!vigente && (
                     <span className="ml-2 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-dark-text/60">
                       Inactivo
@@ -77,15 +73,15 @@ export const CostosTable = ({ costos }: CostosTableProps) => {
                 <td className="px-5 py-4 text-dark-text/60 tabular-nums">
                   {formatFecha(costo.fechaRenovacion)}
                 </td>
-                <td className="px-3 py-4" onClick={(e) => e.stopPropagation()}>
-                  <CostoRowActions costoId={costo.id} />
+                <td className="px-3 py-4" data-sin-navegar>
+                  <RowActions verHref={`/costos/${costo.id}`} editarHref={`/costos/${costo.id}/editar`} />
                 </td>
-              </tr>
+              </FilaTabla>
               )
             })
           )}
         </tbody>
       </table>
-    </div>
+    </ContenedorTabla>
   )
 }

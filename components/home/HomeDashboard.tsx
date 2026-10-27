@@ -10,8 +10,8 @@ interface HomeDashboardProps {
 
 export const HomeDashboard = ({ userName }: HomeDashboardProps) => {
   return (
-    <div className="px-8 py-8 h-full flex flex-col justify-center items-center">
-      <h1 className="text-center text-4xl font-semibold text-dark-text sm:text-5xl">
+    <div className="flex h-full flex-col items-center justify-center px-4 py-8 sm:px-8">
+      <h1 className="text-center text-3xl font-semibold text-dark-text sm:text-5xl">
         Bienvenido{' '}
         <span className="bg-linear-to-r from-brand-blue to-brand-green bg-clip-text text-transparent">
           {userName}
@@ -24,7 +24,7 @@ export const HomeDashboard = ({ userName }: HomeDashboardProps) => {
           <Link
             key={href}
             href={href}
-            className="flex flex-col items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-8 text-sm font-medium text-dark-text/70 transition-colors hover:border-brand-blue/40 hover:bg-brand-blue/5 hover:text-dark-text min-w-52"
+            className="flex flex-col items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-8 text-sm font-medium text-dark-text/70 transition-colors hover:border-brand-blue/40 hover:bg-brand-blue/5 hover:text-dark-text sm:min-w-52"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={icono} />

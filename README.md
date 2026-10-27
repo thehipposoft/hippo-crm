@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Hippo CRM
 
-## Getting Started
+CRM interno de The Hipposoft: clientes, proyectos, pagos, costos y un tablero de
+gráficos financieros. Next.js 16 sobre la API REST de WordPress (`wp.thehipposoft.com`).
 
-First, run the development server:
+## Correr en local
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. Instalar dependencias:
+   ```bash
+   yarn
+   ```
+2. Crear `.env.local` en la raíz:
+   ```
+   WP_API_URL=https://wp.thehipposoft.com/wp-json/hippo/v1
+   ```
+3. Levantar el servidor y abrir http://localhost:3000:
+   ```bash
+   yarn dev
+   ```
+4. Entrar con tu usuario de WordPress y una **Application Password**
+   (wp-admin → Usuarios → Perfil → Contraseñas de aplicación), no con tu
+   contraseña normal.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+> En local se trabaja contra los datos reales de producción: lo que crees,
+> edites o borres cambia los datos de verdad.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Comandos
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Comando          | Qué hace                        |
+|------------------|---------------------------------|
+| `yarn dev`       | Servidor de desarrollo          |
+| `yarn build`     | Build de producción             |
+| `yarn lint`      | ESLint                          |
+| `yarn typecheck` | Chequeo de tipos (tsc --noEmit) |
 
-## Learn More
+## Deploy
 
-To learn more about Next.js, take a look at the following resources:
+Hosting en Netlify (`crm.thehipposoft.com`). La variable `WP_API_URL` tiene que
+estar configurada en el sitio de Netlify.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+El backend (endpoints `hippo/v1`) vive en el `functions.php` del theme de
+WordPress, sección "HIPPO CRM IMPLEMENTACIÓN", y se despliega aparte.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Documentación
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `CLAUDE.md` — contexto, modelo de datos y reglas de negocio
+- `AGENTS.md` — estructura del proyecto y convenciones de código

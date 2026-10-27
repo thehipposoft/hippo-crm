@@ -10,7 +10,7 @@ export default async function GraficosPage() {
   ])
 
   return (
-    <div className="px-8 py-8">
+    <div className="px-4 py-8 sm:px-8">
       <div className="mb-7">
         <h1 className="text-xl font-semibold text-dark-text">Gráficos</h1>
         <p className="mt-0.5 text-sm text-dark-text/50">Resumen financiero y de proyectos</p>

@@ -23,14 +23,20 @@ app/
       [id]/page.tsx           → ficha
       [id]/editar/page.tsx    → edición (+ actions.ts)
     graficos/                 → tablero financiero
+    loading.tsx               → esqueleto mientras carga WordPress
+    error.tsx                 → error con botón de reintentar
+    not-found.tsx             → 404 (fichas inexistentes)
   api/login, api/logout       → route handlers de sesión
-middleware.ts                 → protección de rutas (raíz del proyecto)
+proxy.ts                      → protección de rutas (ex middleware.ts, convención de Next 16)
 
 components/
+  layout/                     → Sidebar (desktop fija, mobile desplegable, ítem activo)
   ui/                         → Formulario (Formulario, Campo, Input, Select, Textarea,
-                                FilaCampos), PaginaFormulario, PageHeader, Field, SearchInput
+                                FilaCampos), PaginaFormulario, PageHeader, Field, SearchInput,
+                                FilaTabla + ContenedorTabla, RowActions, ConfirmDialog
   clientes/ proyectos/ pagos/ costos/
-                              → <Entidad>Form, <Entidades>Table, <Entidad>RowActions
+                              → <Entidad>Form, <Entidades>Table (+ RowActions propios
+                                en pagos y proyectos)
   graficos/                   → charts (Recharts) y cards del tablero
   home/                       → HomeDashboard
 
@@ -40,7 +46,7 @@ lib/
   formularios.ts              → EstadoFormulario y tipos compartidos server/cliente
   validations/                → schemas Zod por entidad (salida = payload de WordPress)
   auth.ts                     → getToken, getNombreUsuario (solo server)
-  cookies.ts                  → nombres de cookies y duración (sin imports: lo usa el middleware)
+  cookies.ts                  → nombres de cookies y duración (sin imports: lo usa el proxy)
   types.ts                    → tipos de las entidades y constantes (estados, monedas, etc.)
   fechas.ts                   → fechas de calendario sin hora, "hoy" en zona Argentina
   format.ts                   → formatFecha, formatMonto, aInputFecha
@@ -90,6 +96,14 @@ En local se trabaja contra los datos reales de producción: cuidado al crear, ed
 - Las server actions devuelven `EstadoFormulario` y, si sale bien, hacen
   `revalidatePath` + `redirect`
 
+## Convenciones de UI
+- Tablas: `ContenedorTabla` (scroll horizontal en mobile) + `FilaTabla` por fila. La
+  primera columna lleva un `<Link>` a la ficha (teclado y abrir en otra pestaña);
+  la celda de acciones lleva `data-sin-navegar`
+- Menú de acciones de las filas: `RowActions` (ver, editar, eliminar opcional, ítems extra)
+- Confirmaciones: `ConfirmDialog`, nunca `window.confirm` ni `window.alert`
+- Mobile-first: padding `px-4 sm:px-8`, grillas que colapsan a una columna
+
 ## Convenciones de estados
 Los colores de cada estado están en `components/proyectos/StatusBadge.tsx`:
 - PROSPECTO → gris
@@ -109,5 +123,5 @@ Los colores de cada estado están en `components/proyectos/StatusBadge.tsx`:
 ## Convenciones de autenticación
 - Login: `app/api/login/route.ts` — pega a `${WP_API_URL}/login` con usuario + Application Password, guarda `hippo_token` y `hippo_user_name` en cookies httpOnly (7 días)
 - Logout: `app/api/logout/route.ts` — borra ambas cookies y redirige a `/login`
-- El middleware (`middleware.ts`, raíz) redirige a `/login` si falta la cookie `hippo_token`, y a `/proyectos` si hay cookie y se intenta entrar a `/login`
+- El proxy (`proxy.ts`, raíz) redirige a `/login` si falta la cookie `hippo_token`, y a `/proyectos` si hay cookie y se intenta entrar a `/login`
 - Nombres de cookies: siempre desde `lib/cookies.ts`; el token en server, con `getToken()`

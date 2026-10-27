@@ -17,7 +17,7 @@ export default async function CostoDetallePage({
 
   return (
     <div className="max-w-2xl px-4 py-8 sm:px-8">
-      <div className="mb-7 flex items-center justify-between">
+      <div className="mb-7 flex flex-wrap items-start justify-between gap-3">
         <div>
           <Link href="/costos" className="text-xs text-dark-text/50 hover:text-dark-text transition-colors">
             ← Volver a costos

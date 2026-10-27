@@ -39,7 +39,7 @@ Estructura, comandos y convenciones detalladas: ver `AGENTS.md`.
 ## Principios de diseño
 - Interfaz simple, moderna y dinámica
 - Priorizar claridad de la información sobre decoración
-- Mobile-first (pendiente: hoy el sidebar y las tablas no se adaptan a mobile)
+- Mobile-first: sidebar desplegable y tablas con scroll horizontal en pantallas chicas
 - Tema claro con los colores de marca (`brand-blue`, `brand-green`,
   `brand-orange`, `brand-white`, `dark-text`). Modo oscuro: no implementado.
 
@@ -51,7 +51,7 @@ Estructura, comandos y convenciones detalladas: ver `AGENTS.md`.
 - WordPress devuelve un token (7 días) que se guarda en la cookie httpOnly
   `hippo_token`, junto con `hippo_user_name` (display name del usuario)
 - Logout vía `POST /api/logout` — borra las cookies y redirige a /login
-- El middleware redirige a /login si falta la cookie; con sesión, /login → /proyectos
+- El proxy (`proxy.ts`) redirige a /login si falta la cookie; con sesión, /login → /proyectos
 
 ## Modelo de datos
 Tipos en `lib/types.ts`. WordPress los guarda como custom post types.
@@ -109,12 +109,10 @@ Tipos en `lib/types.ts`. WordPress los guarda como custom post types.
 - Pendiente por proyecto (on-off y recurrentes, por moneda)
 - Gráficos: pagos por mes y por cliente, proyectos por estado, gastos del mes,
   resultado del mes por moneda
+- Loading, error y 404; layout mobile; navegación con ítem activo
+- Cambio rápido de estado de un proyecto desde el listado
 
 ### Pendiente
-- Loading y error states (`loading.tsx` / `error.tsx`)
-- Layout mobile (sidebar colapsable, tablas con scroll horizontal)
-- Estado activo en la navegación
-- Migrar `middleware.ts` a `proxy.ts` (convención de Next 16)
 - Dashboard de inicio con lo urgente: deadlines, renovaciones, acciones pendientes, cobros
 - Notas y timeline por cliente
 - Cotizaciones

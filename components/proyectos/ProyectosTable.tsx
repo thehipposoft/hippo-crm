@@ -1,11 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import type { ProyectoRow, Estado, FrecuenciaPago, PagoRow } from '@/lib/types'
 import { StatusBadge } from './StatusBadge'
 import { ProyectoRowActions } from './ProyectoRowActions'
 import { SearchInput } from '@/components/ui/SearchInput'
+import { ContenedorTabla, FilaTabla } from '@/components/ui/FilaTabla'
 import { formatMonto } from '@/lib/format'
 import { resumenPendiente, type ResumenPendiente } from '@/lib/proyectos'
 
@@ -65,7 +66,6 @@ interface ProyectosTableProps {
 }
 
 export const ProyectosTable = ({ proyectos, pagos, mostrarCliente = true }: ProyectosTableProps) => {
-  const router = useRouter()
   const [filtro, setFiltro] = useState<Estado | 'TODOS'>('TODOS')
   const [busqueda, setBusqueda] = useState('')
 
@@ -99,8 +99,8 @@ export const ProyectosTable = ({ proyectos, pagos, mostrarCliente = true }: Proy
       </div>
 
       {/* Table */}
-      <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-        <table className="w-full text-sm">
+      <ContenedorTabla>
+        <table className="w-full min-w-3xl text-sm">
           <thead>
             <tr className="border-b border-slate-200 bg-brand-white">
               <th className="px-5 py-3.5 text-left text-xs font-medium text-dark-text/50 uppercase tracking-wider">
@@ -141,15 +141,11 @@ export const ProyectosTable = ({ proyectos, pagos, mostrarCliente = true }: Proy
                 const resumen = resumenPendiente(proyecto, pagos)
                 const otrasMonedas = formatOtrasMonedas(resumen)
                 return (
-                <tr
-                  key={proyecto.id}
-                  onClick={() => router.push(`/proyectos/${proyecto.id}`)}
-                  className="cursor-pointer border-b border-slate-100 last:border-0 hover:bg-brand-white transition-colors"
-                >
+                <FilaTabla key={proyecto.id} href={`/proyectos/${proyecto.id}`}>
                   <td className="px-5 py-4">
-                    <span className="font-medium text-dark-text">
+                    <Link href={`/proyectos/${proyecto.id}`} className="font-medium text-dark-text hover:text-brand-blue">
                       {proyecto.nombre}
-                    </span>
+                    </Link>
                   </td>
                   {mostrarCliente && (
                     <td className="px-5 py-4 text-dark-text/60">
@@ -171,16 +167,16 @@ export const ProyectosTable = ({ proyectos, pagos, mostrarCliente = true }: Proy
                   <td className="px-5 py-4 max-w-xs text-dark-text/60">
                     {proyecto.accionPendiente ? truncate(proyecto.accionPendiente, 60) : '—'}
                   </td>
-                  <td className="px-3 py-4" onClick={(e) => e.stopPropagation()}>
-                    <ProyectoRowActions proyectoId={proyecto.id} />
+                  <td className="px-3 py-4" data-sin-navegar>
+                    <ProyectoRowActions proyectoId={proyecto.id} estado={proyecto.estado} />
                   </td>
-                </tr>
+                </FilaTabla>
                 )
               })
             )}
           </tbody>
         </table>
-      </div>
+      </ContenedorTabla>
     </div>
   )
 }

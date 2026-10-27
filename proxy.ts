@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { TOKEN_COOKIE } from './lib/cookies'
 
-export const middleware = (request: NextRequest) => {
+// Chequeo optimista de sesión: solo mira si existe la cookie. WordPress valida el token.
+export const proxy = (request: NextRequest) => {
   const token = request.cookies.get(TOKEN_COOKIE)
   const isLoginPage = request.nextUrl.pathname.startsWith('/login')
 

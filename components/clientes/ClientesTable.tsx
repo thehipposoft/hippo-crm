@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import type { ClienteRow } from '@/lib/types'
-import { ClienteRowActions } from './ClienteRowActions'
+import { ContenedorTabla, FilaTabla } from '@/components/ui/FilaTabla'
+import { RowActions } from '@/components/ui/RowActions'
 import { SearchInput } from '@/components/ui/SearchInput'
 
 const coincide = (cliente: ClienteRow, query: string): boolean => {
@@ -19,7 +20,6 @@ interface ClientesTableProps {
 }
 
 export const ClientesTable = ({ clientes }: ClientesTableProps) => {
-  const router = useRouter()
   const [busqueda, setBusqueda] = useState('')
 
   const filtrados = clientes.filter((c) => coincide(c, busqueda))
@@ -30,8 +30,8 @@ export const ClientesTable = ({ clientes }: ClientesTableProps) => {
         <SearchInput value={busqueda} onChange={setBusqueda} placeholder="Buscar por nombre, contacto, email..." />
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-        <table className="w-full text-sm">
+      <ContenedorTabla>
+        <table className="w-full min-w-3xl text-sm">
           <thead>
             <tr className="border-b border-slate-200 bg-brand-white">
               <th className="px-5 py-3.5 text-left text-xs font-medium text-dark-text/50 uppercase tracking-wider">
@@ -61,15 +61,11 @@ export const ClientesTable = ({ clientes }: ClientesTableProps) => {
               </tr>
             ) : (
               filtrados.map((cliente) => (
-                <tr
-                  key={cliente.id}
-                  onClick={() => router.push(`/clientes/${cliente.id}`)}
-                  className="cursor-pointer border-b border-slate-100 last:border-0 hover:bg-brand-white transition-colors"
-                >
+                <FilaTabla key={cliente.id} href={`/clientes/${cliente.id}`}>
                   <td className="px-5 py-4">
-                    <span className="font-medium text-dark-text">
+                    <Link href={`/clientes/${cliente.id}`} className="font-medium text-dark-text hover:text-brand-blue">
                       {cliente.nombre}
-                    </span>
+                    </Link>
                   </td>
                   <td className="px-5 py-4 text-dark-text/60">
                     {cliente.contacto ?? <span className="text-dark-text/30">—</span>}
@@ -83,15 +79,15 @@ export const ClientesTable = ({ clientes }: ClientesTableProps) => {
                   <td className="px-5 py-4 text-dark-text/60">
                     {cliente.pais ?? <span className="text-dark-text/30">—</span>}
                   </td>
-                  <td className="px-3 py-4" onClick={(e) => e.stopPropagation()}>
-                    <ClienteRowActions clienteId={cliente.id} />
+                  <td className="px-3 py-4" data-sin-navegar>
+                    <RowActions verHref={`/clientes/${cliente.id}`} editarHref={`/clientes/${cliente.id}/editar`} />
                   </td>
-                </tr>
+                </FilaTabla>
               ))
             )}
           </tbody>
         </table>
-      </div>
+      </ContenedorTabla>
     </div>
   )
 }

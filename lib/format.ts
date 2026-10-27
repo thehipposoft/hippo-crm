@@ -1,5 +1,5 @@
 import { aUtc, parseFecha, type FechaCalendario } from './fechas'
-import { MONEDA_POR_DEFECTO } from './types'
+import { MONEDA_POR_DEFECTO, type FrecuenciaPago } from './types'
 
 const LOCALE = 'es-UY'
 
@@ -22,3 +22,27 @@ export const formatMonto = (monto: number, moneda?: string | null): string =>
 
 // Valor para <input type="date">: 'YYYY-MM-DD' o ''
 export const aInputFecha = (valor: string | null | undefined): string => valor?.slice(0, 10) ?? ''
+
+// "hoy", "mañana", "en 5 días", "ayer", "hace 3 días"
+export const formatDiasRelativos = (dias: number): string => {
+  if (dias === 0) return 'hoy'
+  if (dias === 1) return 'mañana'
+  if (dias === -1) return 'ayer'
+  return dias > 0 ? `en ${dias} días` : `hace ${-dias} días`
+}
+
+// Fecha corta sin año: "26 oct."
+export const formatFechaCorta = (fecha: FechaCalendario): string =>
+  aUtc(fecha).toLocaleDateString(LOCALE, { day: 'numeric', month: 'short', timeZone: 'UTC' })
+
+// "lunes 26 de octubre"
+export const formatFechaLarga = (fecha: FechaCalendario): string => {
+  const texto = aUtc(fecha).toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' })
+  return texto.charAt(0).toUpperCase() + texto.slice(1)
+}
+
+export const SUFIJO_FRECUENCIA: Record<FrecuenciaPago, string> = {
+  SEMANAL: '/ semana',
+  MENSUAL: '/ mes',
+  ANUAL: '/ año',
+}

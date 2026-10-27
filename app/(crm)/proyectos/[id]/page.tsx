@@ -6,6 +6,7 @@ import { PagosTable } from '@/components/pagos/PagosTable'
 import { FRECUENCIAS_PAGO, TIPOS_PROYECTO, type FrecuenciaPago, type PagoRow, type ProyectoRow } from '@/lib/types'
 import { formatFecha, formatMonto } from '@/lib/format'
 import { resumenPendiente } from '@/lib/proyectos'
+import { SaldoProyecto } from '@/components/proyectos/SaldoProyecto'
 
 const UNIDAD_PERIODO: Record<FrecuenciaPago, [string, string]> = {
   SEMANAL: ['semana', 'semanas'],
@@ -83,7 +84,7 @@ export default async function ProyectoDetallePage({
           />
         )}
         <Field label="Pagado" value={formatMonto(resumen.pagado, resumen.moneda)} />
-        <Field label="Monto pendiente" value={formatMonto(resumen.pendiente, resumen.moneda)} />
+        <Field label="Saldo" value={<SaldoProyecto resumen={resumen} />} />
         {otrasMonedas && <Field label="Pagos en otra moneda (sin descontar)" value={otrasMonedas} />}
         <div className="flex items-center justify-between px-5 py-4">
           <span className="text-xs font-medium text-dark-text/50 uppercase tracking-wider">URL</span>

@@ -5,6 +5,8 @@ import Link from 'next/link'
 import type { ClienteRow } from '@/lib/types'
 import { ContenedorTabla, FilaTabla } from '@/components/ui/FilaTabla'
 import { RowActions } from '@/components/ui/RowActions'
+import { Th, ThOrdenable, useOrdenTabla } from '@/components/ui/Orden'
+import type { ColumnaOrden } from '@/lib/orden'
 import { SearchInput } from '@/components/ui/SearchInput'
 
 const coincide = (cliente: ClienteRow, query: string): boolean => {
@@ -15,6 +17,13 @@ const coincide = (cliente: ClienteRow, query: string): boolean => {
     .some((campo) => campo.toLowerCase().includes(q))
 }
 
+const COLUMNAS = {
+  nombre: { valor: (c) => c.nombre, direccionInicial: 'asc' },
+  contacto: { valor: (c) => c.contacto, direccionInicial: 'asc' },
+  email: { valor: (c) => c.emailContacto, direccionInicial: 'asc' },
+  pais: { valor: (c) => c.pais, direccionInicial: 'asc' },
+} satisfies Record<string, ColumnaOrden<ClienteRow>>
+
 interface ClientesTableProps {
   clientes: ClienteRow[]
 }
@@ -22,7 +31,9 @@ interface ClientesTableProps {
 export const ClientesTable = ({ clientes }: ClientesTableProps) => {
   const [busqueda, setBusqueda] = useState('')
 
-  const filtrados = clientes.filter((c) => coincide(c, busqueda))
+  const { orden, cambiarOrden, ordenar } = useOrdenTabla(COLUMNAS, { columna: 'nombre', direccion: 'asc' })
+  const filtrados = ordenar(clientes.filter((c) => coincide(c, busqueda)))
+  const thProps = { orden, onOrdenar: cambiarOrden }
 
   return (
     <div>
@@ -34,21 +45,11 @@ export const ClientesTable = ({ clientes }: ClientesTableProps) => {
         <table className="w-full min-w-3xl text-sm">
           <thead>
             <tr className="border-b border-slate-200 bg-brand-white">
-              <th className="px-5 py-3.5 text-left text-xs font-medium text-dark-text/50 uppercase tracking-wider">
-                Nombre
-              </th>
-              <th className="px-5 py-3.5 text-left text-xs font-medium text-dark-text/50 uppercase tracking-wider">
-                Contacto
-              </th>
-              <th className="px-5 py-3.5 text-left text-xs font-medium text-dark-text/50 uppercase tracking-wider">
-                Teléfono
-              </th>
-              <th className="px-5 py-3.5 text-left text-xs font-medium text-dark-text/50 uppercase tracking-wider">
-                Email
-              </th>
-              <th className="px-5 py-3.5 text-left text-xs font-medium text-dark-text/50 uppercase tracking-wider">
-                País
-              </th>
+              <ThOrdenable id="nombre" {...thProps}>Nombre</ThOrdenable>
+              <ThOrdenable id="contacto" {...thProps}>Contacto</ThOrdenable>
+              <Th>Teléfono</Th>
+              <ThOrdenable id="email" {...thProps}>Email</ThOrdenable>
+              <ThOrdenable id="pais" {...thProps}>País</ThOrdenable>
               <th className="px-3 py-3.5 w-12" />
             </tr>
           </thead>

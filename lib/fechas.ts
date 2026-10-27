@@ -56,3 +56,31 @@ export const sumarMeses = (fecha: FechaCalendario, cantidad: number): FechaCalen
   const d = new Date(Date.UTC(fecha.anio, fecha.mes + cantidad, 1))
   return { anio: d.getUTCFullYear(), mes: d.getUTCMonth(), dia: 1 }
 }
+
+export const desdeUtc = (fecha: Date): FechaCalendario => ({
+  anio: fecha.getUTCFullYear(),
+  mes: fecha.getUTCMonth(),
+  dia: fecha.getUTCDate(),
+})
+
+export const sumarDias = (fecha: FechaCalendario, dias: number): FechaCalendario =>
+  desdeUtc(new Date(Date.UTC(fecha.anio, fecha.mes, fecha.dia + dias)))
+
+const diasDelMes = (anio: number, mes: number): number => new Date(Date.UTC(anio, mes + 1, 0)).getUTCDate()
+
+// Suma meses manteniendo el día; si el mes destino es más corto, cae en su último día (31/01 + 1 → 28/02)
+export const sumarMesesMismoDia = (fecha: FechaCalendario, cantidad: number): FechaCalendario => {
+  const destino = sumarMeses(fecha, cantidad)
+  return { ...destino, dia: Math.min(fecha.dia, diasDelMes(destino.anio, destino.mes)) }
+}
+
+export const inicioDeMes = (fecha: FechaCalendario): FechaCalendario => ({ ...fecha, dia: 1 })
+
+export const finDeMes = (fecha: FechaCalendario): FechaCalendario => ({
+  ...fecha,
+  dia: diasDelMes(fecha.anio, fecha.mes),
+})
+
+export const minFecha = (a: FechaCalendario, b: FechaCalendario): FechaCalendario => (compararFechas(a, b) <= 0 ? a : b)
+
+export const aIso = (fecha: FechaCalendario): string => aUtc(fecha).toISOString().slice(0, 10)

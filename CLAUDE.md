@@ -78,6 +78,12 @@ Tipos en `lib/types.ts`. WordPress los guarda como custom post types.
   el deadline si ya pasó).
 - **Costos del mes:** semanal = monto × 52 / 12; anual = monto / 12. Solo cuentan
   los costos vigentes en el mes (entre `fechaInicio` y `fechaBaja`).
+- **Saldo:** pendiente > 0 = debe; ≈ 0 = "Al día"; < 0 = "a favor" (pagó de más o por adelantado).
+- **Por cobrar:** solo cuenta proyectos ACTIVO, EN_PAUSA o CERRADO (un prospecto no es deuda).
+- **Períodos recurrentes:** el período `n` empieza en `fechaInicio + n × frecuencia`; si el
+  mes destino es más corto, cae en su último día (31/01 → 28/02).
+- **Renovaciones de costos:** se toma `fechaRenovacion` y se corre según la frecuencia
+  hasta la próxima fecha >= hoy.
 - **Fechas:** WordPress manda `'YYYY-MM-DD'`. Nunca `new Date('YYYY-MM-DD')`
   (se interpreta en UTC y en Argentina cae el día anterior): usar `lib/fechas.ts`
   y `lib/format.ts`. La zona horaria del negocio es `America/Argentina/Buenos_Aires`.
@@ -111,9 +117,11 @@ Tipos en `lib/types.ts`. WordPress los guarda como custom post types.
   resultado del mes por moneda
 - Loading, error y 404; layout mobile; navegación con ítem activo
 - Cambio rápido de estado de un proyecto desde el listado
+- Saldo por proyecto (pendiente / al día / a favor)
+- Dashboard "Hoy": por cobrar, cobrado y recurrentes del mes, deadlines, renovaciones,
+  acciones pendientes y datos incompletos
 
 ### Pendiente
-- Dashboard de inicio con lo urgente: deadlines, renovaciones, acciones pendientes, cobros
 - Notas y timeline por cliente
 - Cotizaciones
 - Totales consolidados en una moneda (tipo de cambio)

@@ -16,7 +16,7 @@ app/
   (auth)/login/               → página de login
   (crm)/
     layout.tsx                → sidebar + chequeo de sesión
-    page.tsx                  → dashboard de inicio
+    page.tsx                  → dashboard "Hoy" (cobros, deadlines, renovaciones, acciones)
     clientes/ proyectos/ pagos/ costos/
       page.tsx                → listado
       nuevo/page.tsx          → alta (+ actions.ts)
@@ -33,12 +33,13 @@ components/
   layout/                     → Sidebar (desktop fija, mobile desplegable, ítem activo)
   ui/                         → Formulario (Formulario, Campo, Input, Select, Textarea,
                                 FilaCampos), PaginaFormulario, PageHeader, Field, SearchInput,
-                                FilaTabla + ContenedorTabla, RowActions, ConfirmDialog
+                                FilaTabla + ContenedorTabla, Orden (Th, ThOrdenable), RowActions,
+                                ConfirmDialog
   clientes/ proyectos/ pagos/ costos/
                               → <Entidad>Form, <Entidades>Table (+ RowActions propios
                                 en pagos y proyectos)
   graficos/                   → charts (Recharts) y cards del tablero
-  home/                       → HomeDashboard
+  home/                       → HomeDashboard + piezas (Seccion, FilaLista, FechaRelativa, TarjetaMontos)
 
 lib/
   wp.ts                       → wpFetch, wpGet, wpGetONotFound — único acceso a WordPress
@@ -50,9 +51,11 @@ lib/
   types.ts                    → tipos de las entidades y constantes (estados, monedas, etc.)
   fechas.ts                   → fechas de calendario sin hora, "hoy" en zona Argentina
   format.ts                   → formatFecha, formatMonto, aInputFecha
-  proyectos.ts                → moneda del proyecto y cálculo de pendiente
+  proyectos.ts                → moneda del proyecto, períodos, saldo y cobro de recurrentes
+  dashboard.ts                → cálculos del dashboard (deadlines, renovaciones, por cobrar, recurrentes)
   analytics.ts                → agregaciones para los gráficos y costos vigentes
-  navegacion.ts               → ítems del menú (sidebar y atajos del dashboard)
+  navegacion.ts               → ítems del menú
+  orden.ts                    → orden de tablas (estable, vacíos al final)
 ```
 
 ## Comandos
@@ -101,6 +104,10 @@ En local se trabaja contra los datos reales de producción: cuidado al crear, ed
   primera columna lleva un `<Link>` a la ficha (teclado y abrir en otra pestaña);
   la celda de acciones lleva `data-sin-navegar`
 - Menú de acciones de las filas: `RowActions` (ver, editar, eliminar opcional, ítems extra)
+- Orden de columnas: `useOrdenTabla` + `ThOrdenable` (`components/ui/Orden.tsx`), con las
+  columnas definidas en un objeto `COLUMNAS` (`lib/orden.ts`). El orden vive en la URL
+  (`?orden=&dir=`) y se cambia sin volver a pedir datos. Montos: ordenar por `[moneda, monto]`;
+  fechas: con `claveFecha()`. Los vacíos van siempre al final
 - Confirmaciones: `ConfirmDialog`, nunca `window.confirm` ni `window.alert`
 - Mobile-first: padding `px-4 sm:px-8`, grillas que colapsan a una columna
 

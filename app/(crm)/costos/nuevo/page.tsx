@@ -1,5 +1,11 @@
-import { NuevoCostoForm } from './NuevoCostoForm'
+import { CostoForm } from '@/components/costos/CostoForm'
+import { PaginaFormulario } from '@/components/ui/PaginaFormulario'
+import { crearCosto } from './actions'
 
 export default function NuevoCostoPage() {
-  return <NuevoCostoForm />
+  return (
+    <PaginaFormulario titulo="Nuevo costo" volverHref="/costos" volverLabel="Volver a costos">
+      <CostoForm accion={crearCosto} textoBoton="Guardar costo" />
+    </PaginaFormulario>
+  )
 }

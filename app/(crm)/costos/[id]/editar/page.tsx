@@ -1,24 +1,16 @@
-import { cookies } from 'next/headers'
-import { notFound, unstable_rethrow } from 'next/navigation'
-import { wpFetch } from '@/lib/wp'
+import { CostoForm } from '@/components/costos/CostoForm'
+import { PaginaFormulario } from '@/components/ui/PaginaFormulario'
 import type { CostoRow } from '@/lib/types'
-import { EditarCostoForm } from './EditarCostoForm'
+import { wpGetONotFound } from '@/lib/wp'
+import { actualizarCosto } from './actions'
 
-export default async function EditarCostoPage({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
+export default async function EditarCostoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const token = (await cookies()).get('hippo_token')?.value
+  const costo = await wpGetONotFound<CostoRow>(`/costos/${id}`)
 
-  let costo: CostoRow
-  try {
-    costo = await wpFetch(`/costos/${id}`, token)
-  } catch (error) {
-    unstable_rethrow(error)
-    notFound()
-  }
-
-  return <EditarCostoForm costo={costo} />
+  return (
+    <PaginaFormulario titulo="Editar costo" volverHref={`/costos/${id}`} volverLabel="Volver al costo">
+      <CostoForm accion={actualizarCosto.bind(null, id)} textoBoton="Guardar cambios" costo={costo} />
+    </PaginaFormulario>
+  )
 }

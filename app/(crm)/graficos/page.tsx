@@ -1,15 +1,12 @@
-import { cookies } from 'next/headers'
-import { wpFetch } from '@/lib/wp'
+import { wpGet } from '@/lib/wp'
 import { GraficosDashboard } from '@/components/graficos/GraficosDashboard'
 import type { CostoRow, PagoRow, ProyectoRow } from '@/lib/types'
 
 export default async function GraficosPage() {
-  const token = (await cookies()).get('hippo_token')?.value
-
   const [pagos, costos, proyectos] = await Promise.all([
-    wpFetch<PagoRow[]>('/pagos', token),
-    wpFetch<CostoRow[]>('/costos', token),
-    wpFetch<ProyectoRow[]>('/proyectos', token),
+    wpGet<PagoRow[]>('/pagos'),
+    wpGet<CostoRow[]>('/costos'),
+    wpGet<ProyectoRow[]>('/proyectos'),
   ])
 
   return (

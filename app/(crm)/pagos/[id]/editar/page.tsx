@@ -1,26 +1,19 @@
-import { cookies } from 'next/headers'
-import { notFound, unstable_rethrow } from 'next/navigation'
-import { wpFetch } from '@/lib/wp'
+import { PagoForm } from '@/components/pagos/PagoForm'
+import { PaginaFormulario } from '@/components/ui/PaginaFormulario'
 import type { PagoRow, ProyectoRow } from '@/lib/types'
-import { EditarPagoForm } from './EditarPagoForm'
+import { wpGet, wpGetONotFound } from '@/lib/wp'
+import { actualizarPago } from './actions'
 
-export default async function EditarPagoPage({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
+export default async function EditarPagoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const token = (await cookies()).get('hippo_token')?.value
+  const [pago, proyectos] = await Promise.all([
+    wpGetONotFound<PagoRow>(`/pagos/${id}`),
+    wpGet<ProyectoRow[]>('/proyectos'),
+  ])
 
-  let pago: PagoRow
-  try {
-    pago = await wpFetch(`/pagos/${id}`, token)
-  } catch (error) {
-    unstable_rethrow(error)
-    notFound()
-  }
-
-  const proyectos = await wpFetch<ProyectoRow[]>('/proyectos', token)
-
-  return <EditarPagoForm pago={pago} proyectos={proyectos} />
+  return (
+    <PaginaFormulario titulo="Editar pago" volverHref={`/pagos/${id}`} volverLabel="Volver al pago">
+      <PagoForm accion={actualizarPago.bind(null, id)} textoBoton="Guardar cambios" proyectos={proyectos} pago={pago} />
+    </PaginaFormulario>
+  )
 }

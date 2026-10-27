@@ -1,11 +1,15 @@
-import { cookies } from 'next/headers'
-import { wpFetch } from '@/lib/wp'
+import { ProyectoForm } from '@/components/proyectos/ProyectoForm'
+import { PaginaFormulario } from '@/components/ui/PaginaFormulario'
 import type { ClienteRow } from '@/lib/types'
-import { NuevoProyectoForm } from './NuevoProyectoForm'
+import { wpGet } from '@/lib/wp'
+import { crearProyecto } from './actions'
 
 export default async function NuevoProyectoPage() {
-  const token = (await cookies()).get('hippo_token')?.value
-  const clientes = await wpFetch<ClienteRow[]>('/clientes', token)
+  const clientes = await wpGet<ClienteRow[]>('/clientes')
 
-  return <NuevoProyectoForm clientes={clientes} />
+  return (
+    <PaginaFormulario titulo="Nuevo proyecto" volverHref="/proyectos" volverLabel="Volver a proyectos">
+      <ProyectoForm accion={crearProyecto} textoBoton="Guardar proyecto" clientes={clientes} />
+    </PaginaFormulario>
+  )
 }

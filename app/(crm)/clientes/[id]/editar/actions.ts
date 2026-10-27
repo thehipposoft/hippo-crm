@@ -1,41 +1,21 @@
 'use server'
 
-import { cookies } from 'next/headers'
-import { redirect, unstable_rethrow } from 'next/navigation'
+import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
-import { wpFetch } from '@/lib/wp'
-
-export type EditarClienteState = {
-  error: string | null
-}
+import { enviarAWp, validarFormulario } from '@/lib/acciones'
+import type { EstadoFormulario } from '@/lib/formularios'
+import { clienteSchema } from '@/lib/validations/cliente'
 
 export async function actualizarCliente(
   id: string,
-  _prevState: EditarClienteState,
+  _estado: EstadoFormulario,
   formData: FormData
-): Promise<EditarClienteState> {
-  const nombre = formData.get('nombre')?.toString().trim()
-  if (!nombre) return { error: 'El nombre es obligatorio.' }
+): Promise<EstadoFormulario> {
+  const validacion = validarFormulario(clienteSchema, formData)
+  if (!validacion.ok) return validacion.estado
 
-  const payload = {
-    nombre,
-    contacto: formData.get('contacto')?.toString() || null,
-    telefono: formData.get('telefono')?.toString() || null,
-    email_contacto: formData.get('email_contacto')?.toString() || null,
-    pais: formData.get('pais')?.toString() || null,
-  }
-
-  const token = (await cookies()).get('hippo_token')?.value
-
-  try {
-    await wpFetch(`/clientes/${id}`, token, {
-      method: 'PUT',
-      body: JSON.stringify(payload),
-    })
-  } catch (error) {
-    unstable_rethrow(error)
-    return { error: 'No se pudo actualizar el cliente. Intentá de nuevo.' }
-  }
+  const error = await enviarAWp(`/clientes/${id}`, 'PUT', validacion.datos, 'No se pudo actualizar el cliente.')
+  if (error) return error
 
   revalidatePath('/clientes')
   revalidatePath(`/clientes/${id}`)

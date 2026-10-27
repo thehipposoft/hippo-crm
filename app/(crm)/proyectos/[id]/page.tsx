@@ -1,7 +1,6 @@
-import { cookies } from 'next/headers'
-import { notFound, unstable_rethrow } from 'next/navigation'
 import Link from 'next/link'
-import { wpFetch } from '@/lib/wp'
+import { Field } from '@/components/ui/Field'
+import { wpGet, wpGetONotFound } from '@/lib/wp'
 import { StatusBadge } from '@/components/proyectos/StatusBadge'
 import { PagosTable } from '@/components/pagos/PagosTable'
 import { FRECUENCIAS_PAGO, TIPOS_PROYECTO, type FrecuenciaPago, type PagoRow, type ProyectoRow } from '@/lib/types'
@@ -31,24 +30,16 @@ export default async function ProyectoDetallePage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const token = (await cookies()).get('hippo_token')?.value
+  const proyecto = await wpGetONotFound<ProyectoRow>(`/proyectos/${id}`)
 
-  let proyecto: ProyectoRow
-  try {
-    proyecto = await wpFetch(`/proyectos/${id}`, token)
-  } catch (error) {
-    unstable_rethrow(error)
-    notFound()
-  }
-
-  const pagos = await wpFetch<PagoRow[]>(`/proyectos/${id}/pagos`, token)
+  const pagos = await wpGet<PagoRow[]>(`/proyectos/${id}/pagos`)
   const resumen = resumenPendiente(proyecto, pagos)
   const otrasMonedas = Object.entries(resumen.otrasMonedas)
     .map(([moneda, monto]) => formatMonto(monto, moneda))
     .join(' + ')
 
   return (
-    <div className="px-8 py-8 max-w-2xl">
+    <div className="max-w-2xl px-4 py-8 sm:px-8">
       <div className="mb-7 flex items-center justify-between">
         <div>
           <Link href="/proyectos" className="text-xs text-dark-text/50 hover:text-dark-text transition-colors">
@@ -132,15 +123,6 @@ export default async function ProyectoDetallePage({
         </Link>
       </div>
       <PagosTable pagos={pagos} mostrarProyecto={false} />
-    </div>
-  )
-}
-
-function Field({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between px-5 py-4">
-      <span className="text-xs font-medium text-dark-text/50 uppercase tracking-wider">{label}</span>
-      <span className="text-sm text-dark-text/80">{value}</span>
     </div>
   )
 }

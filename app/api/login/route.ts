@@ -1,9 +1,6 @@
 import { NextResponse } from 'next/server'
+import { TOKEN_COOKIE, TOKEN_MAX_AGE_SECONDS, USER_NAME_COOKIE } from '@/lib/cookies'
 import { wpFetch } from '@/lib/wp'
-
-const TOKEN_COOKIE = 'hippo_token'
-const USER_NAME_COOKIE = 'hippo_user_name'
-const TOKEN_MAX_AGE_SECONDS = 60 * 60 * 24 * 7
 
 export const POST = async (request: Request) => {
   const { username, password } = await request.json()

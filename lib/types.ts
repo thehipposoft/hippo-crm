@@ -1,10 +1,17 @@
-export type Estado =
-  | 'PROSPECTO'
-  | 'EN_NEGOCIACION'
-  | 'ACTIVO'
-  | 'EN_PAUSA'
-  | 'CERRADO'
-  | 'PERDIDO'
+// Tuplas `as const`: fuente única para los tipos y para los schemas de Zod
+export const ESTADO_VALUES = ['PROSPECTO', 'EN_NEGOCIACION', 'ACTIVO', 'EN_PAUSA', 'CERRADO', 'PERDIDO'] as const
+export type Estado = (typeof ESTADO_VALUES)[number]
+
+export const TIPO_PROYECTO_VALUES = ['ON_OFF', 'RECURRENTE'] as const
+export type TipoProyecto = (typeof TIPO_PROYECTO_VALUES)[number]
+
+export const FRECUENCIA_VALUES = ['SEMANAL', 'MENSUAL', 'ANUAL'] as const
+export type FrecuenciaPago = (typeof FRECUENCIA_VALUES)[number]
+
+export const MONEDAS = ['USD', 'ARS', 'AUD', 'EUR'] as const
+export type Moneda = (typeof MONEDAS)[number]
+
+export const MONEDA_POR_DEFECTO: Moneda = 'USD'
 
 export type ClienteRow = {
   id: number
@@ -14,10 +21,6 @@ export type ClienteRow = {
   emailContacto: string | null
   pais: string | null
 }
-
-export type TipoProyecto = 'ON_OFF' | 'RECURRENTE'
-
-export type FrecuenciaPago = 'SEMANAL' | 'MENSUAL' | 'ANUAL'
 
 export type ProyectoRow = {
   id: number
@@ -35,8 +38,6 @@ export type ProyectoRow = {
   // Pendiente en WordPress: hasta que lo devuelva, se infiere de los pagos
   moneda?: Moneda | null
 }
-
-export type Moneda = 'USD' | 'ARS' | 'AUD' | 'EUR'
 
 export type PagoRow = {
   id: number
@@ -73,6 +74,7 @@ export const ESTADOS: { value: Estado; label: string }[] = [
 ]
 
 export const MEDIOS_PAGO = ['Transferencia', 'Efectivo', 'Tarjeta', 'Cheque', 'Otro'] as const
+export const MEDIO_PAGO_POR_DEFECTO = MEDIOS_PAGO[0]
 
 export const TIPOS_PROYECTO: { value: TipoProyecto; label: string }[] = [
   { value: 'ON_OFF', label: 'On-off' },
@@ -84,7 +86,3 @@ export const FRECUENCIAS_PAGO: { value: FrecuenciaPago; label: string }[] = [
   { value: 'MENSUAL', label: 'Mensual' },
   { value: 'ANUAL', label: 'Anual' },
 ]
-
-export const MONEDAS: Moneda[] = ['USD', 'ARS', 'AUD', 'EUR']
-
-export const MONEDA_POR_DEFECTO: Moneda = 'USD'

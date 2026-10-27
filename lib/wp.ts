@@ -1,4 +1,5 @@
-import { redirect } from 'next/navigation'
+import { notFound, redirect, unstable_rethrow } from 'next/navigation'
+import { getToken } from './auth'
 
 export const wpFetch = async <T>(
   path: string,
@@ -26,4 +27,17 @@ export const wpFetch = async <T>(
   }
 
   return res.json()
+}
+
+// GET autenticado con el token de la sesión
+export const wpGet = async <T>(path: string): Promise<T> => wpFetch<T>(path, await getToken())
+
+// Igual que wpGet, pero un error muestra la página 404 (fichas y edición)
+export const wpGetONotFound = async <T>(path: string): Promise<T> => {
+  try {
+    return await wpGet<T>(path)
+  } catch (error) {
+    unstable_rethrow(error)
+    notFound()
+  }
 }

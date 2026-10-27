@@ -1,46 +1,17 @@
 'use server'
 
-import { cookies } from 'next/headers'
-import { redirect, unstable_rethrow } from 'next/navigation'
+import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
-import { wpFetch } from '@/lib/wp'
+import { enviarAWp, validarFormulario } from '@/lib/acciones'
+import type { EstadoFormulario } from '@/lib/formularios'
+import { costoSchema } from '@/lib/validations/costo'
 
-export type NuevoCostoState = {
-  error: string | null
-}
+export async function crearCosto(_estado: EstadoFormulario, formData: FormData): Promise<EstadoFormulario> {
+  const validacion = validarFormulario(costoSchema, formData)
+  if (!validacion.ok) return validacion.estado
 
-export async function crearCosto(
-  _prevState: NuevoCostoState,
-  formData: FormData
-): Promise<NuevoCostoState> {
-  const nombreCosto = formData.get('nombre_costo')?.toString().trim()
-  if (!nombreCosto) return { error: 'El nombre del costo es obligatorio.' }
-
-  const montoRaw = formData.get('monto')?.toString()
-  if (!montoRaw) return { error: 'El monto es obligatorio.' }
-
-  const payload = {
-    nombre_costo: nombreCosto,
-    monto: Number(montoRaw),
-    moneda: formData.get('moneda')?.toString() || 'USD',
-    metodo_pago: formData.get('metodo_pago')?.toString() || null,
-    frecuencia: formData.get('frecuencia')?.toString() || 'MENSUAL',
-    fecha_renovacion: formData.get('fecha_renovacion')?.toString() || null,
-    fecha_inicio: formData.get('fecha_inicio')?.toString() || null,
-    fecha_baja: formData.get('fecha_baja')?.toString() || null,
-  }
-
-  const token = (await cookies()).get('hippo_token')?.value
-
-  try {
-    await wpFetch('/costos', token, {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    })
-  } catch (error) {
-    unstable_rethrow(error)
-    return { error: 'No se pudo guardar el costo. Intentá de nuevo.' }
-  }
+  const error = await enviarAWp('/costos', 'POST', validacion.datos, 'No se pudo guardar el costo.')
+  if (error) return error
 
   revalidatePath('/costos')
   redirect('/costos')

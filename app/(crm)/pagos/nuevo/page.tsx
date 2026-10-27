@@ -1,16 +1,16 @@
-import { cookies } from 'next/headers'
-import { wpFetch } from '@/lib/wp'
+import { PagoForm } from '@/components/pagos/PagoForm'
+import { PaginaFormulario } from '@/components/ui/PaginaFormulario'
 import type { ProyectoRow } from '@/lib/types'
-import { NuevoPagoForm } from './NuevoPagoForm'
+import { wpGet } from '@/lib/wp'
+import { crearPago } from './actions'
 
-export default async function NuevoPagoPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ proyecto?: string }>
-}) {
+export default async function NuevoPagoPage({ searchParams }: { searchParams: Promise<{ proyecto?: string }> }) {
   const { proyecto } = await searchParams
-  const token = (await cookies()).get('hippo_token')?.value
-  const proyectos = await wpFetch<ProyectoRow[]>('/proyectos', token)
+  const proyectos = await wpGet<ProyectoRow[]>('/proyectos')
 
-  return <NuevoPagoForm proyectos={proyectos} proyectoIdInicial={proyecto} />
+  return (
+    <PaginaFormulario titulo="Nuevo pago" volverHref="/pagos" volverLabel="Volver a pagos">
+      <PagoForm accion={crearPago} textoBoton="Guardar pago" proyectos={proyectos} proyectoIdInicial={proyecto} />
+    </PaginaFormulario>
+  )
 }

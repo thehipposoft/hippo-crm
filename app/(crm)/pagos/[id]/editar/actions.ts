@@ -1,48 +1,21 @@
 'use server'
 
-import { cookies } from 'next/headers'
-import { redirect, unstable_rethrow } from 'next/navigation'
+import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
-import { wpFetch } from '@/lib/wp'
-
-export type EditarPagoState = {
-  error: string | null
-}
+import { enviarAWp, validarFormulario } from '@/lib/acciones'
+import type { EstadoFormulario } from '@/lib/formularios'
+import { pagoSchema } from '@/lib/validations/pago'
 
 export async function actualizarPago(
   id: string,
-  _prevState: EditarPagoState,
+  _estado: EstadoFormulario,
   formData: FormData
-): Promise<EditarPagoState> {
-  const proyectoId = formData.get('proyecto_id')?.toString()
-  if (!proyectoId) return { error: 'El proyecto es obligatorio.' }
+): Promise<EstadoFormulario> {
+  const validacion = validarFormulario(pagoSchema, formData)
+  if (!validacion.ok) return validacion.estado
 
-  const fecha = formData.get('fecha')?.toString()
-  if (!fecha) return { error: 'La fecha es obligatoria.' }
-
-  const montoRaw = formData.get('monto')?.toString()
-  if (!montoRaw) return { error: 'El monto es obligatorio.' }
-
-  const payload = {
-    proyecto_id: proyectoId,
-    fecha,
-    monto: Number(montoRaw),
-    moneda: formData.get('moneda')?.toString() || 'USD',
-    medio_pago: formData.get('medio_pago')?.toString() || null,
-    notas: formData.get('notas')?.toString() || null,
-  }
-
-  const token = (await cookies()).get('hippo_token')?.value
-
-  try {
-    await wpFetch(`/pagos/${id}`, token, {
-      method: 'PUT',
-      body: JSON.stringify(payload),
-    })
-  } catch (error) {
-    unstable_rethrow(error)
-    return { error: 'No se pudo actualizar el pago. Intentá de nuevo.' }
-  }
+  const error = await enviarAWp(`/pagos/${id}`, 'PUT', validacion.datos, 'No se pudo actualizar el pago.')
+  if (error) return error
 
   revalidatePath('/pagos')
   revalidatePath(`/pagos/${id}`)

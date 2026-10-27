@@ -19,3 +19,6 @@ export const formatMes = (fecha: FechaCalendario): string =>
 
 export const formatMonto = (monto: number, moneda?: string | null): string =>
   new Intl.NumberFormat(LOCALE, { style: 'currency', currency: moneda || MONEDA_POR_DEFECTO }).format(monto)
+
+// Valor para <input type="date">: 'YYYY-MM-DD' o ''
+export const aInputFecha = (valor: string | null | undefined): string => valor?.slice(0, 10) ?? ''

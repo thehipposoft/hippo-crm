@@ -1,7 +1,6 @@
-import { cookies } from 'next/headers'
-import { notFound, unstable_rethrow } from 'next/navigation'
 import Link from 'next/link'
-import { wpFetch } from '@/lib/wp'
+import { Field } from '@/components/ui/Field'
+import { wpGetONotFound } from '@/lib/wp'
 import { FRECUENCIAS_PAGO, type CostoRow } from '@/lib/types'
 import { formatFecha, formatMonto } from '@/lib/format'
 
@@ -14,18 +13,10 @@ export default async function CostoDetallePage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const token = (await cookies()).get('hippo_token')?.value
-
-  let costo: CostoRow
-  try {
-    costo = await wpFetch(`/costos/${id}`, token)
-  } catch (error) {
-    unstable_rethrow(error)
-    notFound()
-  }
+  const costo = await wpGetONotFound<CostoRow>(`/costos/${id}`)
 
   return (
-    <div className="px-8 py-8 max-w-2xl">
+    <div className="max-w-2xl px-4 py-8 sm:px-8">
       <div className="mb-7 flex items-center justify-between">
         <div>
           <Link href="/costos" className="text-xs text-dark-text/50 hover:text-dark-text transition-colors">
@@ -50,15 +41,6 @@ export default async function CostoDetallePage({
         <Field label="Fecha de alta" value={formatFecha(costo.fechaInicio)} />
         <Field label="Fecha de baja" value={costo.fechaBaja ? formatFecha(costo.fechaBaja) : 'Activo'} />
       </div>
-    </div>
-  )
-}
-
-function Field({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between px-5 py-4">
-      <span className="text-xs font-medium text-dark-text/50 uppercase tracking-wider">{label}</span>
-      <span className="text-sm text-dark-text/80">{value}</span>
     </div>
   )
 }

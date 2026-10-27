@@ -1,29 +1,36 @@
-# CRM — Gestión de Clientes
+# Hippo CRM
 
 ## Contexto del proyecto
-CRM interno para un equipo de 3 personas. Manejo de clientes, estados,
-fechas de etapas, cotizaciones, pagos y notas. Menos de 100 clientes
-en el corto plazo.
+CRM interno de The Hipposoft para un equipo de 3 personas (Diego, Gomi, Majo).
+Maneja clientes, proyectos, pagos recibidos y costos fijos, más un tablero de
+gráficos financieros. Menos de 100 clientes en el corto plazo.
+
+Estructura, comandos y convenciones detalladas: ver `AGENTS.md`.
 
 ## Stack tecnológico
-- **Frontend:** Next.js 14+ (App Router) + TypeScript strict
-- **Estilos:** Tailwind CSS
-- **Backend:** WordPress existente (`wp.thehipposoft.com`), vía REST API custom
-  (`WP_API_URL`, ej. `/wp-json/hippo/v1`) — Next.js solo consume, no aloja datos
-- **Cliente de API:** `lib/wp.ts` (`wpFetch`) — todo acceso al backend pasa por ahí
+- **Frontend:** Next.js 16 (App Router) + React 19 + TypeScript strict
+- **Estilos:** Tailwind CSS 4 (tokens de marca en `app/globals.css`)
+- **Validación:** Zod 4 (`lib/validations/`)
+- **Gráficos:** Recharts
+- **Backend:** WordPress existente (`wp.thehipposoft.com`), REST API custom
+  `hippo/v1` (`WP_API_URL`). Next.js solo consume, no aloja datos.
+  El código del backend vive en el `functions.php` del theme de WordPress,
+  sección "HIPPO CRM IMPLEMENTACIÓN" (no está en este repo).
+- **Cliente de API:** `lib/wp.ts` — todo acceso al backend pasa por ahí
 - **Auth:** token opaco emitido por WordPress, guardado en cookie httpOnly
   (`hippo_token`) — Next.js no lo valida, solo lo reenvía como `Bearer`
-- **Hosting:** Netlify
+- **Hosting:** Netlify (`crm.thehipposoft.com`)
+- **Package manager:** yarn
 
 ## Estilo de comunicación
-- Comentarios en el código: cortos y directos
+- Comentarios en el código: cortos y directos, en español
 - Sin frases de relleno — ser preciso
 - Responder en español siempre
 
 ## Estilo de código
 - Siempre TypeScript — nunca `any`
 - Preferir arrow functions y `const`
-- Componentes: exports nombrados, PascalCase
+- Componentes: exports nombrados, PascalCase (las `page.tsx` usan `export default`)
 - Hooks: camelCase, prefijo `use`
 - Sin números mágicos — usar constantes con nombre
 - Sin estilos inline — clases Tailwind exclusivamente
@@ -32,58 +39,84 @@ en el corto plazo.
 ## Principios de diseño
 - Interfaz simple, moderna y dinámica
 - Priorizar claridad de la información sobre decoración
-- Mobile-first
-- Modo oscuro por defecto
+- Mobile-first (pendiente: hoy el sidebar y las tablas no se adaptan a mobile)
+- Tema claro con los colores de marca (`brand-blue`, `brand-green`,
+  `brand-orange`, `brand-white`, `dark-text`). Modo oscuro: no implementado.
 
 ## Autenticación
 - Login vía `POST /api/login` → pega a `${WP_API_URL}/login` con `{ username, password }`
+- La contraseña es una **Application Password** de WordPress (Usuarios → Perfil →
+  Contraseñas de aplicación), no la contraseña normal del usuario
 - 3 usuarios creados manualmente en WordPress (no hay registro público)
-- El token que devuelve WordPress se guarda en cookie httpOnly `hippo_token` (7 días);
-  es opaco, Next.js no lo decodifica
-- Logout vía `POST /api/logout` — borra la cookie y redirige a /login
-- Middleware (`middleware.ts`, raíz) protege todas las rutas — redirige a /login si
-  falta la cookie `hippo_token`
+- WordPress devuelve un token (7 días) que se guarda en la cookie httpOnly
+  `hippo_token`, junto con `hippo_user_name` (display name del usuario)
+- Logout vía `POST /api/logout` — borra las cookies y redirige a /login
+- El middleware redirige a /login si falta la cookie; con sesión, /login → /proyectos
 
-## Modelo de datos principal
+## Modelo de datos
+Tipos en `lib/types.ts`. WordPress los guarda como custom post types.
 
-### Cliente (expuesto hoy por `GET /clientes`)
-- id, nombre, empresa, estado, fechaInicio, deadline, accionPendiente
-- estado: PROSPECTO | EN_NEGOCIACION | ACTIVO | EN_PAUSA | CERRADO | PERDIDO
+| Entidad  | Endpoints                                                    | Campos principales |
+|----------|--------------------------------------------------------------|--------------------|
+| Cliente  | `GET/POST /clientes`, `GET/PUT /clientes/:id`, `GET /clientes/:id/proyectos` | nombre, contacto, telefono, emailContacto, pais |
+| Proyecto | `GET/POST /proyectos`, `GET/PUT /proyectos/:id`, `GET /proyectos/:id/pagos` | clienteId, estado, fechaInicio, deadline, tipoProyecto (ON_OFF \| RECURRENTE), valor, moneda, frecuenciaPago, url, accionPendiente |
+| Pago     | `GET/POST /pagos`, `GET/PUT/DELETE /pagos/:id`               | proyectoId, fecha, monto, moneda, medioPago, notas |
+| Costo    | `GET/POST /costos`, `GET/PUT /costos/:id`                    | nombreCosto, monto, moneda, frecuencia, metodoPago, fechaRenovacion, fechaInicio, fechaBaja |
 
-### Nota, Cotizacion, Pago
-- Todavía no expuestos por la API de WordPress — son roadmap de Fase 2/3.
-  No inventar estos endpoints ni sus shapes hasta que WordPress los defina.
+- El **estado** es del proyecto, no del cliente:
+  PROSPECTO | EN_NEGOCIACION | ACTIVO | EN_PAUSA | CERRADO | PERDIDO
+- Monedas: USD | ARS | AUD | EUR. Frecuencias: SEMANAL | MENSUAL | ANUAL
+- Las respuestas vienen en camelCase; los payloads de escritura van en snake_case
+- No existen todavía: Notas, Cotizaciones, DELETE de clientes/proyectos/costos.
+  No inventar endpoints ni shapes hasta que WordPress los defina.
+
+## Reglas de negocio (no romper)
+- **Monedas:** nunca sumar montos de monedas distintas. El pendiente de un proyecto
+  solo descuenta pagos en la moneda del proyecto; el resto se muestra aparte.
+- **Pendiente de un proyecto:** lo calcula el CRM (`lib/proyectos.ts`), no WordPress.
+  Recurrentes: `valor × períodos iniciados` desde `fechaInicio` hasta hoy (o hasta
+  el deadline si ya pasó).
+- **Costos del mes:** semanal = monto × 52 / 12; anual = monto / 12. Solo cuentan
+  los costos vigentes en el mes (entre `fechaInicio` y `fechaBaja`).
+- **Fechas:** WordPress manda `'YYYY-MM-DD'`. Nunca `new Date('YYYY-MM-DD')`
+  (se interpreta en UTC y en Argentina cae el día anterior): usar `lib/fechas.ts`
+  y `lib/format.ts`. La zona horaria del negocio es `America/Argentina/Buenos_Aires`.
 
 ## Qué NO sugerir
 - Class Components
 - CSS Modules
-- Redux
+- Redux, Zustand u otro estado global (no hace falta: los datos viven en WordPress)
+- React Hook Form (los formularios usan server actions + Zod, ver `AGENTS.md`)
 - `var`
 - NextAuth (usamos auth por token vía cookie, emitido por WordPress)
 - Registro público de usuarios
-- Prisma / cualquier ORM (no hay base de datos propia — todo pasa por `wpFetch`)
+- Prisma / cualquier ORM (no hay base de datos propia — todo pasa por `lib/wp.ts`)
 - Fetch directo a `WP_API_URL` fuera de `lib/wp.ts`
 
 ## Patrones preferidos
-- Data fetching: React Server Components + fetch con cache
-- Estado local: useState / useReducer
-- Estado global: Zustand
-- Formularios: React Hook Form + Zod
-- Imágenes: next/image con width y height explícitos
+- **Lectura de datos:** Server Components con `wpGet()` / `wpGetONotFound()` (`lib/wp.ts`)
+- **Escritura:** server actions en `actions.ts` con `validarFormulario()` + `enviarAWp()` (`lib/acciones.ts`)
+- **Formularios:** un componente por entidad (`components/<entidad>/<Entidad>Form.tsx`)
+  armado con `components/ui/Formulario.tsx`, usado para crear y para editar
+- **Estado local:** useState / useReducer
+- **Imágenes:** next/image con width y height explícitos
 
 ## Roadmap
-### Fase 1 — MVP
+### Hecho
 - Login con auth por token (WordPress)
-- Listado de clientes con filtros por estado
-- Ficha de cliente con notas y timeline
-- CRUD de clientes
+- CRUD de clientes, proyectos, pagos y costos
+- Listado de proyectos con filtros por estado y búsqueda
+- Pendiente por proyecto (on-off y recurrentes, por moneda)
+- Gráficos: pagos por mes y por cliente, proyectos por estado, gastos del mes,
+  resultado del mes por moneda
 
-### Fase 2 — Finanzas
-- Cotizaciones asociadas a clientes
-- Registro de pagos (pagado / pendiente)
-- Resumen financiero por cliente
-
-### Fase 3 — Dashboard
-- Métricas generales
-- Alertas de plazos próximos
+### Pendiente
+- Loading y error states (`loading.tsx` / `error.tsx`)
+- Layout mobile (sidebar colapsable, tablas con scroll horizontal)
+- Estado activo en la navegación
+- Migrar `middleware.ts` a `proxy.ts` (convención de Next 16)
+- Dashboard de inicio con lo urgente: deadlines, renovaciones, acciones pendientes, cobros
+- Notas y timeline por cliente
+- Cotizaciones
+- Totales consolidados en una moneda (tipo de cambio)
 - Exportar a CSV

@@ -1,6 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
-
-const TOKEN_COOKIE = 'hippo_token'
+import { TOKEN_COOKIE } from './lib/cookies'
 
 export const middleware = (request: NextRequest) => {
   const token = request.cookies.get(TOKEN_COOKIE)

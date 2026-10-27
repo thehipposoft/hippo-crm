@@ -1,31 +1,27 @@
-import { cookies } from 'next/headers'
-import { notFound, unstable_rethrow } from 'next/navigation'
-import { wpFetch } from '@/lib/wp'
-import type { ClienteRow, PagoRow, ProyectoRow } from '@/lib/types'
+import { ProyectoForm } from '@/components/proyectos/ProyectoForm'
+import { PaginaFormulario } from '@/components/ui/PaginaFormulario'
 import { monedaProyecto } from '@/lib/proyectos'
-import { EditarProyectoForm } from './EditarProyectoForm'
+import type { ClienteRow, PagoRow, ProyectoRow } from '@/lib/types'
+import { wpGet, wpGetONotFound } from '@/lib/wp'
+import { actualizarProyecto } from './actions'
 
-export default async function EditarProyectoPage({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
+export default async function EditarProyectoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const token = (await cookies()).get('hippo_token')?.value
-
-  let proyecto: ProyectoRow
-  try {
-    proyecto = await wpFetch(`/proyectos/${id}`, token)
-  } catch (error) {
-    unstable_rethrow(error)
-    notFound()
-  }
-
+  const proyecto = await wpGetONotFound<ProyectoRow>(`/proyectos/${id}`)
   const [clientes, pagos] = await Promise.all([
-    wpFetch<ClienteRow[]>('/clientes', token),
-    wpFetch<PagoRow[]>(`/proyectos/${id}/pagos`, token),
+    wpGet<ClienteRow[]>('/clientes'),
+    wpGet<PagoRow[]>(`/proyectos/${id}/pagos`),
   ])
 
-  // Proyectos viejos sin moneda: se propone la de sus pagos, no USD a ciegas
-  return <EditarProyectoForm proyecto={proyecto} clientes={clientes} monedaInicial={monedaProyecto(proyecto, pagos)} />
+  return (
+    <PaginaFormulario titulo="Editar proyecto" volverHref={`/proyectos/${id}`} volverLabel="Volver al proyecto">
+      <ProyectoForm
+        accion={actualizarProyecto.bind(null, id)}
+        textoBoton="Guardar cambios"
+        clientes={clientes}
+        proyecto={proyecto}
+        monedaInicial={monedaProyecto(proyecto, pagos)}
+      />
+    </PaginaFormulario>
+  )
 }

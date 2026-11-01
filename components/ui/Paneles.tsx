@@ -34,7 +34,7 @@ export const Seccion = ({ titulo, descripcion, cantidad, verTodoHref, vacio, chi
         </Link>
       )}
     </header>
-    {children ?? <p className="px-5 py-8 text-center text-sm text-dark-text/40">{vacio}</p>}
+    {children || <p className="px-5 py-8 text-center text-sm text-dark-text/40">{vacio}</p>}
   </section>
 )
 

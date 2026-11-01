@@ -1,6 +1,6 @@
 // Helpers solo para tests (no se importan desde la app)
 import type { FechaCalendario } from './fechas'
-import type { CostoRow, PagoRow, ProyectoRow, TareaRow, UnidadRow } from './types'
+import type { CostoRow, PagoCostoRow, PagoRow, ProyectoRow, TareaRow, UnidadRow } from './types'
 
 // Mes 1-12, como se escribe a mano
 export const fecha = (anio: number, mes: number, dia: number): FechaCalendario => ({ anio, mes: mes - 1, dia })
@@ -82,5 +82,17 @@ export const tarea = (datos: Partial<TareaRow> = {}): TareaRow => ({
   clienteNombre: null,
   creada: '2026-10-01',
   fechaHecha: null,
+  ...datos,
+})
+
+export const pagoCosto = (datos: Partial<PagoCostoRow> = {}): PagoCostoRow => ({
+  id: 1,
+  costoId: 1,
+  fecha: '2026-10-05',
+  periodo: '2026-10',
+  monto: 10,
+  moneda: 'USD',
+  metodoPago: 'Tarjeta',
+  notas: null,
   ...datos,
 })

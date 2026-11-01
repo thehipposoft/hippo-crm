@@ -70,3 +70,26 @@ describe('con fecha fija (26/10/2026 en Argentina)', () => {
     expect(resultado).toEqual({ USD: 900 })
   })
 })
+
+describe('costos del mes con pagos registrados', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-11-10T15:00:00Z'))
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('usa lo pagado real del período y separa pagado / falta', async () => {
+    const { pagoCosto } = await import('./test-utils')
+    const { costosEsteMesDetalle } = await import('./analytics')
+    const costos = [
+      costo({ id: 1, monto: 1000, pagos: [pagoCosto({ periodo: '2026-11', monto: 990 })] }),
+      costo({ id: 2, monto: 15 }),
+    ]
+    expect(costosEsteMes(costos).USD).toBe(1015)
+    const detalle = costosEsteMesDetalle(costos)
+    expect(detalle.pagado.USD).toBe(990)
+    expect(detalle.falta.USD).toBe(25)
+  })
+})

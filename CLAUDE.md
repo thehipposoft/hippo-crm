@@ -63,7 +63,8 @@ Tipos en `lib/types.ts`. WordPress los guarda como custom post types.
 | Pago     | `GET/POST /pagos`, `GET/PUT/DELETE /pagos/:id`               | proyectoId, fecha, monto, moneda, medioPago, notas |
 | Unidad   | `POST /unidades`, `GET/PUT/DELETE /unidades/:id` (vienen embebidas en el proyecto como `unidades`) | proyectoId, nombre, fechaAlta, fechaBaja, notas |
 | Tarea    | `GET/POST /tareas`, `GET/PUT/DELETE /tareas/:id`, `GET /usuarios` (equipo: usuarios que entraron al CRM) | titulo, descripcion, estado (PENDIENTE \| EN_CURSO \| BLOQUEADA \| HECHA), prioridad (ALTA \| MEDIA \| BAJA), responsableId, fechaLimite, proyectoId, fechaHecha |
-| Costo    | `GET/POST /costos`, `GET/PUT /costos/:id`                    | nombreCosto, monto, moneda, frecuencia, metodoPago, fechaRenovacion, fechaInicio, fechaBaja |
+| Costo    | `GET/POST /costos`, `GET/PUT/DELETE /costos/:id` (DELETE manda a la papelera también sus pagos) | nombreCosto, categoria (SUELDO \| SUSCRIPCION \| HOSTING \| SERVICIO \| IMPUESTO \| OTRO), monto, moneda, frecuencia, metodoPago, fechaRenovacion, fechaInicio, fechaBaja, pagos |
+| Pago de costo | `POST /pagos-costo` (con `costo_id`), `GET/PUT/DELETE /pagos-costo/:id` (vienen embebidos en el costo como `pagos`) | costoId, fecha, periodo ('YYYY-MM' o 'YYYY'), monto, moneda, metodoPago, notas |
 
 - Link público: `POST/DELETE /clientes/:id/link-publico` (con login) y
   `GET /publico/estado-de-cuenta/:token` (sin login, sin notas ni acciones internas).
@@ -72,7 +73,7 @@ Tipos en `lib/types.ts`. WordPress los guarda como custom post types.
   PROSPECTO | EN_NEGOCIACION | ACTIVO | EN_PAUSA | CERRADO | PERDIDO
 - Monedas: USD | ARS | AUD | EUR. Frecuencias: SEMANAL | MENSUAL | ANUAL
 - Las respuestas vienen en camelCase; los payloads de escritura van en snake_case
-- No existen todavía: Notas, Cotizaciones, DELETE de clientes/proyectos/costos.
+- No existen todavía: Notas, Cotizaciones, DELETE de clientes/proyectos.
   No inventar endpoints ni shapes hasta que WordPress los defina.
 
 ## Reglas de negocio (no romper)
@@ -86,7 +87,11 @@ Tipos en `lib/types.ts`. WordPress los guarda como custom post types.
   (o la primera alta) se cobra `unidades activas × valor`. "Mes completo": una unidad activa
   aunque sea un día del mes (alta o baja) cuenta todo el mes. Lógica en `lib/unidades.ts`.
 - **Costos del mes:** semanal = monto × 52 / 12; anual = monto / 12. Solo cuentan
-  los costos vigentes en el mes (entre `fechaInicio` y `fechaBaja`).
+  los costos vigentes en el mes (entre `fechaInicio` y `fechaBaja`). Si el período tiene
+  pagos registrados se usa lo pagado de verdad (+ lo que falte si es parcial); si no, el
+  estimado. Lógica en `lib/costos.ts`.
+- **Pagos de costos:** cada pago cubre un período (mes, o año si el costo es anual). Un pago
+  en otra moneda da el período por pagado y se muestra aparte (nunca se suma).
 - **Saldo:** pendiente > 0 = debe; ≈ 0 = "Al día"; < 0 = "a favor" (pagó de más o por adelantado).
 - **Por cobrar:** solo cuenta proyectos ACTIVO, EN_PAUSA o CERRADO (un prospecto no es deuda).
 - **Períodos recurrentes:** el período `n` empieza en `fechaInicio + n × frecuencia`; si el
@@ -132,6 +137,8 @@ Tipos en `lib/types.ts`. WordPress los guarda como custom post types.
 - Registro rápido de pagos con monto sugerido
 - Recibos de pago y estado de cuenta (PDF, español/inglés) y link público para el cliente
 - Cobro por unidad (casillas de correo): activas por mes, altas y bajas
+- Pagos de costos (sueldos, suscripciones): registrar pago por período, estado del mes,
+  historial, "Por pagar" en el dashboard y categorías
 - Tareas del equipo: tablero por estado, responsables, prioridad, fecha límite, vínculo a proyectos
 - Dashboard "Hoy": por cobrar, cobrado y recurrentes del mes, deadlines, renovaciones,
   acciones pendientes y datos incompletos

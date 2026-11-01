@@ -1,4 +1,5 @@
-import { hoy, indiceMes, MESES_POR_ANIO, mismoMes, parseFecha, sumarMeses, type FechaCalendario } from './fechas'
+import { costosDelMes, costoVigenteEn } from './costos'
+import { hoy, mismoMes, parseFecha, sumarMeses } from './fechas'
 import { formatMes } from './format'
 import { ESTADOS, MONEDAS, type CostoRow, type Estado, type Moneda, type PagoRow, type ProyectoRow } from './types'
 
@@ -26,53 +27,46 @@ export function pagosEsteMes(pagos: PagoRow[]): Record<Moneda, number> {
   return agruparPorMoneda(pagos.filter((p) => esEsteMes(p.fecha)))
 }
 
-const SEMANAS_POR_ANIO = 52
+// Re-exportado: la lógica de costos vive en lib/costos.ts
+export { costoVigenteEn }
 
-// Costo mensualizado: mensual aporta su monto; semanal, 52 semanas / 12 meses
-// (~4,33 por mes); anual se prorratea (monto / 12).
-function costoMensualizado(costo: CostoRow): number {
-  switch (costo.frecuencia) {
-    case 'SEMANAL':
-      return (costo.monto * SEMANAS_POR_ANIO) / MESES_POR_ANIO
-    case 'ANUAL':
-      return costo.monto / MESES_POR_ANIO
-    default:
-      return costo.monto
-  }
-}
-
-// Un costo cuenta en el mes si se dio de alta antes de que termine y no se dio
-// de baja antes de que empiece (el mes de la baja todavía se paga).
-export function costoVigenteEn(costo: CostoRow, mes: FechaCalendario = hoy()): boolean {
-  const alta = parseFecha(costo.fechaInicio)
-  const baja = parseFecha(costo.fechaBaja)
-  const indice = indiceMes(mes)
-  if (alta && indiceMes(alta) > indice) return false
-  if (baja && indiceMes(baja) < indice) return false
-  return true
-}
-
-const costosVigentesEsteMes = (costos: CostoRow[]): CostoRow[] => {
-  const mes = hoy()
-  return costos.filter((c) => costoVigenteEn(c, mes))
-}
-
+// Costos del mes por moneda: lo pagado del período y, si falta algo, el estimado
 export function costosEsteMes(costos: CostoRow[]): Record<Moneda, number> {
-  const aportes = costosVigentesEsteMes(costos).map((c) => ({ monto: costoMensualizado(c), moneda: c.moneda }))
+  const aportes = costosDelMes(costos, hoy()).flatMap((c) => [
+    { monto: c.monto, moneda: c.moneda },
+    ...(Object.entries(c.otrasMonedas) as [Moneda, number][]).map(([moneda, monto]) => ({ monto, moneda })),
+  ])
   return agruparPorMoneda(aportes)
 }
 
 export function gastosDelMes(costos: CostoRow[]): Array<{ nombre: string } & Record<Moneda, number>> {
-  return costosVigentesEsteMes(costos)
+  return costosDelMes(costos, hoy())
     .map((c) => ({
-      nombre: c.nombreCosto,
-      ...agruparPorMoneda([{ monto: costoMensualizado(c), moneda: c.moneda }]),
+      nombre: c.costo.nombreCosto,
+      ...agruparPorMoneda([
+        { monto: c.monto, moneda: c.moneda },
+        ...(Object.entries(c.otrasMonedas) as [Moneda, number][]).map(([moneda, monto]) => ({ monto, moneda })),
+      ]),
     }))
     .sort((a, b) => {
       const totalA = MONEDAS.reduce((sum, m) => sum + a[m], 0)
       const totalB = MONEDAS.reduce((sum, m) => sum + b[m], 0)
       return totalB - totalA
     })
+}
+
+// Pagado y pendiente del mes (para "Costos del mes")
+export function costosEsteMesDetalle(costos: CostoRow[]): { pagado: Record<Moneda, number>; falta: Record<Moneda, number> } {
+  const delMes = costosDelMes(costos, hoy())
+  return {
+    pagado: agruparPorMoneda(
+      delMes.flatMap((c) => [
+        { monto: c.pagado, moneda: c.moneda },
+        ...(Object.entries(c.otrasMonedas) as [Moneda, number][]).map(([moneda, monto]) => ({ monto, moneda })),
+      ])
+    ),
+    falta: agruparPorMoneda(delMes.map((c) => ({ monto: c.falta, moneda: c.moneda }))),
+  }
 }
 
 export function resultadoParcial(pagos: PagoRow[], costos: CostoRow[]): Partial<Record<Moneda, number>> {

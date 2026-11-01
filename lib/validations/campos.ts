@@ -57,3 +57,7 @@ export const opcionConDefault = <const T extends readonly [string, ...string[]]>
 // Para refine: fechas 'YYYY-MM-DD' se comparan como texto
 export const fechaNoAnterior = (desde: string | null, hasta: string | null): boolean =>
   !desde || !hasta || hasta >= desde
+
+// Enum opcional: vacío → null
+export const opcionOpcional = <const T extends readonly [string, ...string[]]>(valores: T) =>
+  opcional(z.enum(valores, { error: 'Opción inválida.' }))

@@ -4,6 +4,7 @@ import { Campo, FilaCampos, Formulario, Input, Select } from '@/components/ui/Fo
 import { aInputFecha } from '@/lib/format'
 import type { AccionFormulario } from '@/lib/formularios'
 import {
+  CATEGORIAS_COSTO,
   FRECUENCIAS_PAGO,
   MEDIO_PAGO_POR_DEFECTO,
   MEDIOS_PAGO,
@@ -20,9 +21,17 @@ interface CostoFormProps {
 
 export const CostoForm = ({ accion, textoBoton, costo }: CostoFormProps) => (
   <Formulario accion={accion} textoBoton={textoBoton}>
-    <Campo nombre="nombre_costo" label="Nombre del costo *">
-      <Input name="nombre_costo" type="text" required defaultValue={costo?.nombreCosto} placeholder="Ej: Figma, hosting, dominio" />
-    </Campo>
+    <FilaCampos>
+      <Campo nombre="nombre_costo" label="Nombre del costo *">
+        <Input name="nombre_costo" type="text" required defaultValue={costo?.nombreCosto} placeholder="Ej: Figma, Sueldo Gomi, hosting" />
+      </Campo>
+      <Campo nombre="categoria" label="Categoría">
+        <Select name="categoria" defaultValue={costo?.categoria ?? ''}>
+          <option value="">Sin categoría</option>
+          {CATEGORIAS_COSTO.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+        </Select>
+      </Campo>
+    </FilaCampos>
 
     <FilaCampos>
       <Campo nombre="monto" label="Monto *">

@@ -86,6 +86,34 @@ export type CostoRow = {
   // Vigencia: sin alta = desde siempre, sin baja = sigue activo
   fechaInicio?: string | null
   fechaBaja?: string | null
+  categoria?: CategoriaCosto | null
+  // Pagos registrados (vienen embebidos desde WordPress)
+  pagos?: PagoCostoRow[]
+}
+
+export const CATEGORIA_COSTO_VALUES = ['SUELDO', 'SUSCRIPCION', 'HOSTING', 'SERVICIO', 'IMPUESTO', 'OTRO'] as const
+export type CategoriaCosto = (typeof CATEGORIA_COSTO_VALUES)[number]
+
+export const CATEGORIAS_COSTO: { value: CategoriaCosto; label: string }[] = [
+  { value: 'SUELDO', label: 'Sueldo' },
+  { value: 'SUSCRIPCION', label: 'Suscripción' },
+  { value: 'HOSTING', label: 'Hosting' },
+  { value: 'SERVICIO', label: 'Servicio' },
+  { value: 'IMPUESTO', label: 'Impuesto' },
+  { value: 'OTRO', label: 'Otro' },
+]
+
+// Pago hecho de un costo. `periodo` es qué cubre ('YYYY-MM', o 'YYYY' en anuales);
+// `fecha` es cuándo se pagó (el sueldo de octubre puede pagarse el 5 de noviembre).
+export type PagoCostoRow = {
+  id: number
+  costoId: number
+  fecha: string | null
+  periodo: string | null
+  monto: number
+  moneda: Moneda
+  metodoPago: string | null
+  notas: string | null
 }
 
 export const ESTADOS: { value: Estado; label: string }[] = [

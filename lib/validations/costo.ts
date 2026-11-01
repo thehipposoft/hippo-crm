@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import { FRECUENCIA_VALUES, MEDIO_PAGO_POR_DEFECTO, MEDIOS_PAGO, MONEDA_POR_DEFECTO, MONEDAS } from '@/lib/types'
-import { fechaNoAnterior, fechaOpcional, montoRequerido, opcionConDefault, textoRequerido } from './campos'
+import { CATEGORIA_COSTO_VALUES, FRECUENCIA_VALUES, MEDIO_PAGO_POR_DEFECTO, MEDIOS_PAGO, MONEDA_POR_DEFECTO, MONEDAS } from '@/lib/types'
+import { fechaNoAnterior, fechaOpcional, montoRequerido, opcionConDefault, opcionOpcional, textoRequerido } from './campos'
 
 export const costoSchema = z
   .object({
@@ -12,6 +12,7 @@ export const costoSchema = z
     fecha_renovacion: fechaOpcional,
     fecha_inicio: fechaOpcional,
     fecha_baja: fechaOpcional,
+    categoria: opcionOpcional(CATEGORIA_COSTO_VALUES),
   })
   .refine((c) => fechaNoAnterior(c.fecha_inicio, c.fecha_baja), {
     path: ['fecha_baja'],

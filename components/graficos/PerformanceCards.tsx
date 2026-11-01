@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { costosEsteMes, pagosEsteMes, resultadoParcial } from '@/lib/analytics'
+import { costosEsteMes, costosEsteMesDetalle, pagosEsteMes, resultadoParcial } from '@/lib/analytics'
 import type { CostoRow, Moneda, PagoRow } from '@/lib/types'
 import { formatMonto } from '@/lib/format'
 
@@ -13,6 +13,7 @@ interface PerformanceCardsProps {
 export const PerformanceCards = ({ pagos, costos }: PerformanceCardsProps) => {
   const lineasPagos = Object.entries(pagosEsteMes(pagos)).filter(([, monto]) => monto !== 0) as [Moneda, number][]
   const lineasCostos = Object.entries(costosEsteMes(costos)).filter(([, monto]) => monto !== 0) as [Moneda, number][]
+  const { pagado, falta } = costosEsteMesDetalle(costos)
   const lineasResultado = Object.entries(resultadoParcial(pagos, costos)) as [Moneda, number][]
 
   return (
@@ -34,9 +35,14 @@ export const PerformanceCards = ({ pagos, costos }: PerformanceCardsProps) => {
           <EmptyLine />
         ) : (
           lineasCostos.map(([moneda, monto]) => (
-            <p key={moneda} className="text-sm text-dark-text">
-              {formatMonto(monto, moneda)}
-            </p>
+            <div key={moneda}>
+              <p className="text-sm text-dark-text">{formatMonto(monto, moneda)}</p>
+              {(falta[moneda] ?? 0) > 0 && (
+                <p className="text-xs text-dark-text/50">
+                  Pagado {formatMonto(pagado[moneda] ?? 0, moneda)} · falta {formatMonto(falta[moneda] ?? 0, moneda)}
+                </p>
+              )}
+            </div>
           ))
         )}
       </Card>

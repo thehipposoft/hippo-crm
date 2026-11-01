@@ -180,3 +180,28 @@ describe('tareaSchema', () => {
     })
   })
 })
+
+describe('costoSchema: categoría', () => {
+  it('categoría opcional y validada', () => {
+    const ok = validarFormulario(costoSchema, formData({ nombre_costo: 'Sueldo Gomi', monto: '1000', categoria: 'SUELDO' }))
+    expect(ok.ok && ok.datos.categoria).toBe('SUELDO')
+    const vacia = validarFormulario(costoSchema, formData({ nombre_costo: 'Figma', monto: '15', categoria: '' }))
+    expect(vacia.ok && vacia.datos.categoria).toBeNull()
+    expect(errores(validarFormulario(costoSchema, formData({ nombre_costo: 'x', monto: '1', categoria: 'COMIDA' })))).toEqual({
+      categoria: 'Opción inválida.',
+    })
+  })
+})
+
+describe('pagoCostoSchema', () => {
+  it('convierte y valida el período', async () => {
+    const { pagoCostoSchema } = await import('./pagoCosto')
+    const r = validarFormulario(pagoCostoSchema, formData({ fecha: '2026-11-05', periodo: '2026-10', monto: '1.000,50'.replace('.', ''), moneda: 'USD', metodo_pago: 'Transferencia', notas: '' }))
+    expect(r.ok && r.datos).toEqual({ fecha: '2026-11-05', periodo: '2026-10', monto: 1000.5, moneda: 'USD', metodo_pago: 'Transferencia', notas: null })
+    expect(errores(validarFormulario(pagoCostoSchema, formData({ fecha: '', periodo: '2026-13', monto: '' })))).toEqual({
+      fecha: 'La fecha de pago es obligatoria.',
+      periodo: 'Período inválido.',
+      monto: 'El monto es obligatorio.',
+    })
+  })
+})

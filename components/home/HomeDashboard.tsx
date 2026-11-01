@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { SaldoProyecto } from '@/components/proyectos/SaldoProyecto'
 import { StatusBadge } from '@/components/proyectos/StatusBadge'
 import { pagosEsteMes } from '@/lib/analytics'
+import { costosPorPagar, etiquetaPeriodo } from '@/lib/costos'
 import {
   accionesPendientes,
   datosIncompletos,
@@ -20,6 +21,7 @@ import { FechaRelativa, FilaLista, ListaSeccion, Seccion, TarjetaMontos } from '
 
 const MAX_DEUDAS = 8
 const MAX_INCOMPLETOS = 6
+const MAX_POR_PAGAR = 8
 
 interface HomeDashboardProps {
   userName: string
@@ -38,6 +40,7 @@ export const HomeDashboard = ({ userName, proyectos, pagos, costos, tareas }: Ho
   const recurrentes = recurrentesDelMes(proyectos, pagos, fechaHoy)
   const incompletos = datosIncompletos(proyectos)
   const urgentes = tareasUrgentes(tareas, fechaHoy)
+  const porPagar = costosPorPagar(costos, fechaHoy)
 
   const aCobrarEsteMes: Partial<Record<Moneda, number>> = {}
   for (const r of recurrentes) {
@@ -226,6 +229,30 @@ export const HomeDashboard = ({ userName, proyectos, pagos, costos, tareas }: Ho
                   />
                 )
               })}
+            </ListaSeccion>
+          )}
+        </Seccion>
+
+        <Seccion
+          titulo="Por pagar"
+          descripcion="Sueldos, suscripciones y otros costos sin pago registrado"
+          cantidad={porPagar.length}
+          verTodoHref="/costos?cat=pendientes"
+          vacio="Todos los costos al día."
+        >
+          {porPagar.length > 0 && (
+            <ListaSeccion>
+              {porPagar.slice(0, MAX_POR_PAGAR).map(({ costo, resumen }) => (
+                <FilaLista
+                  key={`${costo.id}-${resumen.periodo}`}
+                  href={`/costos/${costo.id}/pagos/nuevo?periodo=${resumen.periodo}&volver=/`}
+                  titulo={costo.nombreCosto}
+                  detalle={`${etiquetaPeriodo(resumen.periodo)}${resumen.estado === 'PARCIAL' ? ' · pago parcial' : ''}`}
+                  lateral={
+                    <span className="text-sm font-medium text-dark-text tabular-nums">{formatMonto(resumen.falta, costo.moneda)}</span>
+                  }
+                />
+              ))}
             </ListaSeccion>
           )}
         </Seccion>

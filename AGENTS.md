@@ -61,7 +61,9 @@ lib/
   format.ts                   → formatFecha, formatMonto, aInputFecha
   proyectos.ts                → moneda del proyecto, períodos, saldo y cobro de recurrentes
   dashboard.ts                → cálculos del dashboard (deadlines, renovaciones, por cobrar, recurrentes)
-  analytics.ts                → agregaciones para los gráficos y costos vigentes
+  analytics.ts                → agregaciones para los gráficos y costos del mes
+  costos.ts                   → pagos de costos: períodos, estado (pagado/parcial/pendiente), sugerencia, por pagar
+  pagosCosto.ts               → opciones del selector de período del form de pago de un costo
   navegacion.ts               → ítems del menú
   orden.ts                    → orden de tablas (estable, vacíos al final)
   periodos.ts                 → períodos de fechas (este mes, año pasado, rango…)
@@ -147,6 +149,17 @@ En local se trabaja contra los datos reales de producción: cuidado al crear, ed
 - `/estado/[token]` es público (excepción en `proxy.ts`): nunca mostrar notas de pagos,
   acciones pendientes ni datos que no sean del cliente del token. WordPress ya los quita.
 - Datos del emisor (nombre, web, email, ID fiscal) en `lib/empresa.ts`
+
+## Pagos de costos
+- Cada pago (`PagoCostoRow`) cubre un **período**: `'YYYY-MM'` (mensual y semanal) o `'YYYY'` (anual).
+  Se elige en el form; por defecto, el pendiente más viejo con lo que falta (`sugerenciaPagoCosto`)
+- Estado del período (`resumenPeriodo`): PAGADO si lo pagado en la moneda del costo cubre lo
+  esperado (o si hay un pago en otra moneda: no se puede comparar), PARCIAL si hay algo, si no PENDIENTE
+- Se esperan pagos desde el primer período con pago registrado (nunca antes del alta): un costo
+  viejo sin pagos cargados solo muestra el período actual, no un año de deuda
+- Rutas: `/costos/[id]/pagos/nuevo?periodo=&volver=` y `/costos/[id]/pagos/[pagoId]/editar`
+- Funciones de `lib/` que use un Server Component no pueden vivir en un archivo `'use client'`
+  (ej. `labelCategoria` está en `lib/costos.ts`, no en `CostosTable`)
 
 ## Convenciones de estados
 Los colores de cada estado están en `components/proyectos/StatusBadge.tsx`:

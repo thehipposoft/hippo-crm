@@ -22,7 +22,8 @@ interface ProyectoFormProps {
   accion: AccionFormulario
   textoBoton: string
   clientes: ClienteRow[]
-  proyecto?: ProyectoRow
+  // Edición, o valores iniciales de un alta (ej. desde una propuesta aceptada)
+  proyecto?: Partial<ProyectoRow>
   // Proyectos viejos sin moneda: se propone la de sus pagos
   monedaInicial?: Moneda
 }

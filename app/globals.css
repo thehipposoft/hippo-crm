@@ -1,20 +1,32 @@
 @import "tailwindcss";
 
+/* Paleta del manual de marca Hippo (2026) */
 :root {
-  --brand-blue: #05B6CE;
-  --brand-green: #B4DC18;
-  --brand-orange: #FA551D;
+  --brand-blue: #01B6CE;      /* Digital Sky: acento, interacciones y detalles */
+  --dark-text: #283750;       /* Midnight Blue: color principal, textos y botones */
+  --brand-green: #B4DC19;     /* Lime */
+  --brand-orange: #FA551E;    /* Vibrant Orange: llamados a la acción, alertas */
+  --brand-lavender: #C8AFF0;  /* Lavander */
+  --brand-plum: #682760;      /* Plumb */
+  --brand-burgundy: #4E0119;  /* Burgundy */
+  --brand-forest: #1C4E3D;    /* Forest green */
   --brand-white: #F7F7F1;
-  --dark-text: #283750;
 }
 
 @theme inline {
   --color-brand-blue: var(--brand-blue);
   --color-brand-green: var(--brand-green);
   --color-brand-orange: var(--brand-orange);
+  --color-brand-lavender: var(--brand-lavender);
+  --color-brand-plum: var(--brand-plum);
+  --color-brand-burgundy: var(--brand-burgundy);
+  --color-brand-forest: var(--brand-forest);
   --color-brand-white: var(--brand-white);
   --color-dark-text: var(--dark-text);
-  --font-sans: var(--font-google-sans);
+  /* Body / UI: Inter. Títulos: NewBlack Typeface cuando esté (por ahora Inter). Acentos editoriales: EB Garamond */
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-inter);
+  --font-editorial: var(--font-garamond);
 }
 
 body {
@@ -22,7 +34,7 @@ body {
   color: var(--dark-text);
 }
 
-/* Recibos y estados de cuenta: "Descargar PDF" usa la impresión del navegador */
+/* Recibos, estados de cuenta y propuestas: "Descargar PDF" usa la impresión del navegador */
 @media print {
   @page {
     size: A4;
@@ -31,5 +43,7 @@ body {
 
   body {
     background: white;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }

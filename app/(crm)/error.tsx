@@ -29,7 +29,7 @@ export default function ErrorPage({ error, unstable_retry }: ErrorPageProps) {
         <button
           type="button"
           onClick={() => unstable_retry()}
-          className="rounded-lg bg-brand-blue px-4 py-2 text-sm font-medium text-white transition hover:brightness-95"
+          className="rounded-lg bg-dark-text px-4 py-2 text-sm font-medium text-white transition hover:bg-dark-text/85"
         >
           Reintentar
         </button>

@@ -19,16 +19,25 @@ export const parseFecha = (valor: string | null | undefined): FechaCalendario | 
   return { anio: Number(match[1]), mes: Number(match[2]) - 1, dia: Number(match[3]) }
 }
 
-export const hoy = (): FechaCalendario => {
+// Día de calendario de un instante, en la zona del negocio
+const fechaDeInstante = (instante: Date): FechaCalendario => {
   const partes = new Intl.DateTimeFormat('en-US', {
     timeZone: ZONA_HORARIA,
     year: 'numeric',
     month: 'numeric',
     day: 'numeric',
-  }).formatToParts(new Date())
+  }).formatToParts(instante)
   const valor = (tipo: Intl.DateTimeFormatPartTypes): number =>
     Number(partes.find((p) => p.type === tipo)?.value)
   return { anio: valor('year'), mes: valor('month') - 1, dia: valor('day') }
+}
+
+export const hoy = (): FechaCalendario => fechaDeInstante(new Date())
+
+// Fecha y hora UTC de WordPress ('2026-11-03T02:30:00Z') → día en Argentina (el 2 de noviembre)
+export const fechaEnZona = (iso: string): FechaCalendario | null => {
+  const instante = new Date(iso)
+  return Number.isNaN(instante.getTime()) ? null : fechaDeInstante(instante)
 }
 
 // Date a medianoche UTC: formatear siempre con timeZone 'UTC'

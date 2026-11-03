@@ -15,7 +15,7 @@ const ErroresContext = createContext<EstadoFormulario['errores']>({})
 
 const useErrorDe = (nombre: string): string | undefined => useContext(ErroresContext)[nombre]
 
-const CLASES_CONTROL =
+export const CLASES_CONTROL =
   'w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-dark-text placeholder-dark-text/30 transition focus:border-transparent focus:outline-none focus:ring-2 focus:ring-brand-blue aria-invalid:border-rose-400'
 
 interface FormularioProps {
@@ -49,7 +49,7 @@ export const Formulario = ({ accion, textoBoton, children }: FormularioProps) =>
         <button
           type="submit"
           disabled={pending}
-          className="mt-2 w-full rounded-lg bg-brand-blue px-4 py-2.5 text-sm font-medium text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-2 w-full rounded-lg bg-dark-text px-4 py-2.5 text-sm font-medium text-white transition hover:bg-dark-text/85 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {pending ? 'Guardando...' : textoBoton}
         </button>
@@ -70,9 +70,11 @@ export const Campo = ({ nombre, label, ayuda, children }: CampoProps) => {
   const error = useErrorDe(nombre)
   return (
     <div>
-      <label htmlFor={nombre} className="mb-1.5 block text-xs font-medium text-dark-text/60">
-        {label}
-      </label>
+      {label && (
+        <label htmlFor={nombre} className="mb-1.5 block text-xs font-medium text-dark-text/60">
+          {label}
+        </label>
+      )}
       {children}
       {error ? (
         <p className="mt-1 text-xs text-rose-600">{error}</p>

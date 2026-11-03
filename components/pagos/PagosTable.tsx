@@ -91,7 +91,7 @@ export const PagosTable = ({ pagos, mostrarProyecto = true, conPeriodo = true }:
               aria-pressed={periodo === value}
               className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${
                 periodo === value
-                  ? 'bg-brand-blue text-white'
+                  ? 'bg-dark-text text-white'
                   : 'border border-slate-200 bg-white text-dark-text/60 hover:bg-brand-blue/10 hover:text-dark-text'
               }`}
             >

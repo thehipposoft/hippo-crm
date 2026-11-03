@@ -16,7 +16,7 @@ interface HojaDocumentoProps {
 export const HojaDocumento = ({ idioma, titulo, datos, pie, children }: HojaDocumentoProps) => {
   const t = TEXTOS[idioma]
   return (
-    <article className="mx-auto w-full max-w-[210mm] bg-white px-6 py-8 text-sm text-dark-text shadow-sm sm:px-12 sm:py-12 print:max-w-none print:p-0 print:shadow-none">
+    <article className="mx-auto w-full max-w-[210mm] border-t-[6px] border-dark-text bg-white px-6 py-8 text-sm text-dark-text shadow-sm sm:px-12 sm:py-12 print:max-w-none print:p-0 print:pt-6 print:shadow-none">
       <header className="flex flex-col gap-6 border-b border-slate-200 pb-6 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-2">
           <Image src={EMPRESA.logo} alt={EMPRESA.nombre} width={EMPRESA.logoAncho} height={EMPRESA.logoAlto} priority />
@@ -32,7 +32,11 @@ export const HojaDocumento = ({ idioma, titulo, datos, pie, children }: HojaDocu
           </div>
         </div>
         <div className="sm:text-right">
-          <h1 className="text-2xl font-semibold uppercase tracking-wide text-dark-text">{titulo}</h1>
+          <h1 className="font-display text-3xl font-semibold tracking-tight text-dark-text">
+            {titulo}
+            {/* Punto cuadrado de la marca */}
+            <span className="ml-1 inline-block h-[0.2em] w-[0.2em] bg-brand-blue" aria-hidden />
+          </h1>
           <div className="mt-2 space-y-0.5 text-xs text-dark-text/60">{datos}</div>
         </div>
       </header>

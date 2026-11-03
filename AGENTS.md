@@ -22,14 +22,18 @@ app/
       nuevo/page.tsx          → alta (+ actions.ts)
       [id]/page.tsx           → ficha
       [id]/editar/page.tsx    → edición (+ actions.ts)
+    propuestas/               → propuestas y cotizaciones: listado, nueva, [id] (ficha), [id]/editar,
+                                plantillas/ y cuentas/ (cuentas bancarias), actions.ts en cada una
     graficos/                 → tablero financiero
     loading.tsx               → esqueleto mientras carga WordPress
     error.tsx                 → error con botón de reintentar
     not-found.tsx             → 404 (fichas inexistentes)
-  documentos/                 → recibos y estados de cuenta (con login, sin sidebar)
+  documentos/                 → recibos, estados de cuenta y vista previa de propuestas (con login, sin sidebar)
     recibo/[pagoId]/
+    propuesta/[id]/             (vista previa interna, también de borradores)
     estado-de-cuenta/[clienteId]/   (+ LinkPublico y sus actions)
   estado/[token]/             → link público del cliente: estado de cuenta y recibos (SIN login)
+  propuesta/[token]/          → link público de una propuesta o cotización, con aceptar/rechazar (SIN login)
   api/login, api/logout       → route handlers de sesión
 proxy.ts                      → protección de rutas (ex middleware.ts, convención de Next 16)
 
@@ -47,7 +51,10 @@ components/
   home/                       → HomeDashboard
   unidades/                   → SeccionUnidades (ficha del proyecto), ListaUnidades, formularios
   tareas/                     → TareasBoard, TareaCard, TareaForm, TareasProyecto
-  documentos/                 → HojaDocumento, BarraDocumento, Recibo, EstadoDeCuentaDoc
+  documentos/                 → HojaDocumento, BarraDocumento, Recibo, EstadoDeCuentaDoc,
+                                PropuestaDocumento, RespuestaPropuesta, Markdown
+  propuestas/                 → PropuestaForm, EditorSecciones, EditorItems, PlantillaForm, CuentaForm,
+                                PropuestasTable, AccionesPropuesta, EstadoPropuestaBadge, SubnavPropuestas
 
 lib/
   wp.ts                       → wpFetch, wpGet, wpGetONotFound — único acceso a WordPress
@@ -62,6 +69,9 @@ lib/
   proyectos.ts                → moneda del proyecto, períodos, saldo y cobro de recurrentes
   dashboard.ts                → cálculos del dashboard (deadlines, renovaciones, por cobrar, recurrentes)
   analytics.ts                → agregaciones para los gráficos y costos del mes
+  propuestas.ts               → totales, número, estado visible (vencida), plantillas base, cuentas sugeridas
+  propuestasServer.ts         → datos del form de propuestas (solo server)
+  markdown.ts                 → formato simple de las secciones (negrita, listas, subtítulos, tablas)
   costos.ts                   → pagos de costos: períodos, estado (pagado/parcial/pendiente), sugerencia, por pagar
   pagosCosto.ts               → opciones del selector de período del form de pago de un costo
   navegacion.ts               → ítems del menú
@@ -149,6 +159,17 @@ En local se trabaja contra los datos reales de producción: cuidado al crear, ed
 - `/estado/[token]` es público (excepción en `proxy.ts`): nunca mostrar notas de pagos,
   acciones pendientes ni datos que no sean del cliente del token. WordPress ya los quita.
 - Datos del emisor (nombre, web, email, ID fiscal) en `lib/empresa.ts`
+
+## Propuestas y cotizaciones
+- Ítems, secciones y cuentas viajan como JSON en inputs hidden (`items`, `secciones`, `cuentas`); los
+  arman `EditorItems` / `EditorSecciones` y los valida `propuestaSchema`
+- Secciones: formato simple de `lib/markdown.ts`, renderizado con React (`Markdown`), nunca HTML crudo
+- Plantillas base en código (`PLANTILLAS_BASE`) + las guardadas en WordPress; en el alta se elige una
+- El contenido del documento va en el idioma de la propuesta (`idioma`), sin selector de idioma
+- `/propuesta/[token]` es público (excepción en `proxy.ts`, ojo: no es `/propuestas`): solo muestra lo
+  que devuelve WordPress (`PropuestaPublica`); un BORRADOR da 404. Con cookie del CRM se pide con
+  `?vista=0` para no marcarla como vista
+- Al imprimir, la portada de la propuesta ocupa la primera página y la inversión arranca en página nueva
 
 ## Pagos de costos
 - Cada pago (`PagoCostoRow`) cubre un **período**: `'YYYY-MM'` (mensual y semanal) o `'YYYY'` (anual).

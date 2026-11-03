@@ -9,10 +9,14 @@ import { NAVEGACION } from '@/lib/navegacion'
 const esActivo = (pathname: string, href: string): boolean =>
   href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`)
 
-const Logo = () => (
-  <div className="flex items-center gap-2.5">
-    <Image src="/hippo-icon.png" alt="" width={28} height={28} className="rounded-lg" />
-    <span className="text-sm font-semibold tracking-tight text-dark-text">Hippo CRM</span>
+// Logo del manual de marca (proporción 1350 × 338)
+const LOGO_ANCHO = 84
+const LOGO_ALTO = 21
+
+const Logo = ({ claro = false }: { claro?: boolean }) => (
+  <div className="flex items-end gap-2">
+    <Image src={claro ? '/hippo-logo-blanco.svg' : '/hippo-logo.svg'} alt="Hippo" width={LOGO_ANCHO} height={LOGO_ALTO} priority />
+    <span className={`text-[11px] font-medium uppercase tracking-[0.2em] ${claro ? 'text-white/50' : 'text-dark-text/40'}`}>CRM</span>
   </div>
 )
 
@@ -61,17 +65,17 @@ export const Sidebar = ({ userName }: SidebarProps) => {
 
       <aside
         id="sidebar"
-        className={`fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col border-r border-slate-200 bg-white transition-transform md:static md:w-56 md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col bg-dark-text transition-transform md:static md:w-56 md:translate-x-0 ${
           abierto ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-          <Logo />
+        <div className="flex items-center justify-between border-b border-white/10 px-5 py-5">
+          <Logo claro />
           <button
             type="button"
             onClick={cerrar}
             aria-label="Cerrar menú"
-            className="flex h-8 w-8 items-center justify-center rounded-md text-dark-text/50 hover:bg-slate-100 md:hidden"
+            className="flex h-8 w-8 items-center justify-center rounded-md text-white/60 hover:bg-white/10 md:hidden"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
@@ -88,10 +92,8 @@ export const Sidebar = ({ userName }: SidebarProps) => {
                 href={href}
                 onClick={cerrar}
                 aria-current={activo ? 'page' : undefined}
-                className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${
-                  activo
-                    ? 'bg-brand-blue/10 font-medium text-dark-text'
-                    : 'text-dark-text/60 hover:bg-brand-blue/10 hover:text-dark-text'
+                className={`relative flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${
+                  activo ? 'bg-white/10 font-medium text-white' : 'text-white/60 hover:bg-white/5 hover:text-white'
                 }`}
               >
                 <svg
@@ -103,23 +105,25 @@ export const Sidebar = ({ userName }: SidebarProps) => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={icono} />
                 </svg>
                 {label}
+                {/* El punto cuadrado de la marca marca la sección activa */}
+                {activo && <span className="absolute right-3 h-1.5 w-1.5 bg-brand-blue" aria-hidden />}
               </Link>
             )
           })}
         </nav>
 
-        <div className="border-t border-slate-200 px-3 pb-4 pt-3">
+        <div className="border-t border-white/10 px-3 pb-4 pt-3">
           <div className="mb-1 flex items-center gap-2.5 px-3 py-2">
-            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-dark-text/10">
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-lavender">
               <span className="text-xs font-medium text-dark-text">{userName[0]?.toUpperCase() ?? 'U'}</span>
             </div>
-            <p className="truncate text-xs text-dark-text/50">{userName}</p>
+            <p className="truncate text-xs text-white/60">{userName}</p>
           </div>
 
           <form action="/api/logout" method="POST">
             <button
               type="submit"
-              className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-dark-text/50 transition-colors hover:bg-slate-100 hover:text-dark-text"
+              className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-white/50 transition-colors hover:bg-white/5 hover:text-white"
             >
               <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

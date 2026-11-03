@@ -178,3 +178,102 @@ export type TareaRow = {
 }
 
 export type UsuarioRow = { id: number; nombre: string }
+
+// ==== Propuestas y cotizaciones ====
+// Propuesta: documento detallado (secciones + inversión). Cotización: lista de ítems con vencimiento.
+export const TIPO_PROPUESTA_VALUES = ['PROPUESTA', 'COTIZACION'] as const
+export type TipoPropuesta = (typeof TIPO_PROPUESTA_VALUES)[number]
+
+export const TIPOS_PROPUESTA: { value: TipoPropuesta; label: string }[] = [
+  { value: 'PROPUESTA', label: 'Propuesta' },
+  { value: 'COTIZACION', label: 'Cotización' },
+]
+
+export const ESTADO_PROPUESTA_VALUES = ['BORRADOR', 'ENVIADA', 'ACEPTADA', 'RECHAZADA'] as const
+export type EstadoPropuesta = (typeof ESTADO_PROPUESTA_VALUES)[number]
+
+export const IDIOMA_VALUES = ['es', 'en'] as const
+export type IdiomaDocumento = (typeof IDIOMA_VALUES)[number]
+
+export type ItemPropuesta = {
+  descripcion: string
+  // Texto debajo de la descripción (qué incluye)
+  detalle: string | null
+  // Tiempo estimado (ej. '2 semanas')
+  plazo: string | null
+  cantidad: number
+  precio: number
+}
+
+// `contenido`: texto con formato simple (ver lib/markdown.ts)
+export type SeccionPropuesta = { titulo: string; contenido: string }
+
+// Lo que comparten plantillas y propuestas
+type ContenidoPropuesta = {
+  id: number
+  tipo: TipoPropuesta
+  idioma: IdiomaDocumento
+  secciones: SeccionPropuesta[]
+  items: ItemPropuesta[]
+  // Condiciones / observaciones al pie del documento
+  notas: string | null
+}
+
+export type PlantillaRow = ContenidoPropuesta & { nombre: string }
+
+export type PropuestaRow = ContenidoPropuesta & {
+  titulo: string
+  // Bajada de la portada
+  resumen: string | null
+  estado: EstadoPropuesta
+  clienteId: number | null
+  clienteNombre: string | null
+  proyectoId: number | null
+  proyectoNombre: string | null
+  moneda: Moneda | null
+  fecha: string
+  // Propuesta: válida hasta. Cotización: vencimiento del pago.
+  fechaVencimiento: string | null
+  descuento: number
+  cuentas: number[]
+  token: string | null
+  // Fecha y hora UTC (ISO 8601)
+  enviadaEl: string | null
+  vistaEl: string | null
+  respondidaEl: string | null
+  respuestaNombre: string | null
+  respuestaComentario: string | null
+}
+
+export type CuentaBancariaRow = {
+  id: number
+  // Alias interno (ej. 'Wise EUR')
+  nombre: string
+  moneda: Moneda | null
+  // Texto tal cual se muestra en el documento (titular, IBAN, BIC, alias, etc.)
+  detalle: string
+}
+
+// Lo que ve el cliente con el link (sin token, fechas internas ni datos del CRM)
+export type PropuestaPublica = Pick<
+  PropuestaRow,
+  | 'id'
+  | 'tipo'
+  | 'idioma'
+  | 'titulo'
+  | 'resumen'
+  | 'estado'
+  | 'moneda'
+  | 'fecha'
+  | 'fechaVencimiento'
+  | 'descuento'
+  | 'secciones'
+  | 'items'
+  | 'notas'
+  | 'respondidaEl'
+  | 'respuestaNombre'
+> & {
+  cliente: { nombre: string | null; contacto: string | null; pais: string | null }
+  cuentas: { nombre: string; detalle: string }[]
+  vencida: boolean
+}

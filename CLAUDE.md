@@ -14,8 +14,8 @@ Estructura, comandos y convenciones detalladas: ver `AGENTS.md`.
 - **Gráficos:** Recharts
 - **Backend:** WordPress existente (`wp.thehipposoft.com`), REST API custom
   `hippo/v1` (`WP_API_URL`). Next.js solo consume, no aloja datos.
-  El código del backend vive en el `functions.php` del theme de WordPress,
-  sección "HIPPO CRM IMPLEMENTACIÓN" (no está en este repo).
+  El código del backend vive en el plugin de WordPress "Hippo CRM"
+  (`wp-content/plugins/hippo-crm`, un archivo por área en `includes/`; no está en este repo).
 - **Cliente de API:** `lib/wp.ts` — todo acceso al backend pasa por ahí
 - **Auth:** token opaco emitido por WordPress, guardado en cookie httpOnly
   (`hippo_token`) — Next.js no lo valida, solo lo reenvía como `Bearer`
@@ -40,8 +40,15 @@ Estructura, comandos y convenciones detalladas: ver `AGENTS.md`.
 - Interfaz simple, moderna y dinámica
 - Priorizar claridad de la información sobre decoración
 - Mobile-first: sidebar desplegable y tablas con scroll horizontal en pantallas chicas
-- Tema claro con los colores de marca (`brand-blue`, `brand-green`,
-  `brand-orange`, `brand-white`, `dark-text`). Modo oscuro: no implementado.
+- Tema claro con la paleta del manual de marca Hippo (`app/globals.css`): `dark-text` (Midnight
+  Blue, color principal: textos, botones y sidebar), `brand-blue` (Digital Sky, acento: foco,
+  ítem activo, detalles), `brand-green`, `brand-orange`, `brand-lavender`, `brand-plum`,
+  `brand-burgundy`, `brand-forest`, `brand-white` (fondo). Botón principal: `bg-dark-text text-white`
+  (blanco sobre cian no tiene contraste). Modo oscuro: no implementado.
+- Tipografías: Inter (body / UI, `font-sans`), `font-display` para títulos (hoy Inter; cuando
+  esté la NewBlack Typeface se cambia en `globals.css`) y EB Garamond (`font-editorial`, acentos).
+- Logo: `public/hippo-logo.svg` (y `-blanco` para fondos oscuros); ícono "H." en `app/icon.svg`.
+  El punto cuadrado cian es el detalle de marca (títulos de documentos, ítem activo, viñetas).
 
 ## Autenticación
 - Login vía `POST /api/login` → pega a `${WP_API_URL}/login` con `{ username, password }`
@@ -64,16 +71,23 @@ Tipos en `lib/types.ts`. WordPress los guarda como custom post types.
 | Unidad   | `POST /unidades`, `GET/PUT/DELETE /unidades/:id` (vienen embebidas en el proyecto como `unidades`) | proyectoId, nombre, fechaAlta, fechaBaja, notas |
 | Tarea    | `GET/POST /tareas`, `GET/PUT/DELETE /tareas/:id`, `GET /usuarios` (equipo: usuarios que entraron al CRM) | titulo, descripcion, estado (PENDIENTE \| EN_CURSO \| BLOQUEADA \| HECHA), prioridad (ALTA \| MEDIA \| BAJA), responsableId, fechaLimite, proyectoId, fechaHecha |
 | Costo    | `GET/POST /costos`, `GET/PUT/DELETE /costos/:id` (DELETE manda a la papelera también sus pagos) | nombreCosto, categoria (SUELDO \| SUSCRIPCION \| HOSTING \| SERVICIO \| IMPUESTO \| OTRO), monto, moneda, frecuencia, metodoPago, fechaRenovacion, fechaInicio, fechaBaja, pagos |
+| Propuesta / cotización | `GET/POST /propuestas`, `GET/PUT/DELETE /propuestas/:id` | tipo (PROPUESTA \| COTIZACION), titulo, resumen, clienteId, proyectoId, estado (BORRADOR \| ENVIADA \| ACEPTADA \| RECHAZADA), idioma (es \| en), moneda, fecha, fechaVencimiento, descuento, secciones [{titulo, contenido}], items [{descripcion, detalle, plazo, cantidad, precio}], cuentas (IDs), notas, token, enviadaEl, vistaEl, respondidaEl, respuestaNombre, respuestaComentario |
+| Plantilla | `GET/POST /plantillas`, `GET/PUT/DELETE /plantillas/:id` | nombre, tipo, idioma, secciones, items, notas |
+| Cuenta bancaria | `GET/POST /cuentas-bancarias`, `GET/PUT/DELETE /cuentas-bancarias/:id` | nombre, moneda (opcional), detalle (texto libre) |
 | Pago de costo | `POST /pagos-costo` (con `costo_id`), `GET/PUT/DELETE /pagos-costo/:id` (vienen embebidos en el costo como `pagos`) | costoId, fecha, periodo ('YYYY-MM' o 'YYYY'), monto, moneda, metodoPago, notas |
 
 - Link público: `POST/DELETE /clientes/:id/link-publico` (con login) y
   `GET /publico/estado-de-cuenta/:token` (sin login, sin notas ni acciones internas).
   El cliente trae `tokenPublico` cuando tiene link activo.
+- Propuesta pública: `GET /publico/propuesta/:token` (404 si es BORRADOR; `?vista=0` no la marca
+  como vista) y `POST /publico/propuesta/:token/respuesta` `{ accion: ACEPTAR | RECHAZAR, nombre, comentario }`
+  (409 si ya fue respondida, 410 si venció). WordPress avisa por email (`HIPPO_CRM_EMAIL_AVISOS` en
+  wp-config.php, o el email del admin).
 - El **estado** es del proyecto, no del cliente:
   PROSPECTO | EN_NEGOCIACION | ACTIVO | EN_PAUSA | CERRADO | PERDIDO
 - Monedas: USD | ARS | AUD | EUR. Frecuencias: SEMANAL | MENSUAL | ANUAL
 - Las respuestas vienen en camelCase; los payloads de escritura van en snake_case
-- No existen todavía: Notas, Cotizaciones, DELETE de clientes/proyectos.
+- No existen todavía: Notas, DELETE de clientes/proyectos.
   No inventar endpoints ni shapes hasta que WordPress los defina.
 
 ## Reglas de negocio (no romper)
@@ -98,6 +112,11 @@ Tipos en `lib/types.ts`. WordPress los guarda como custom post types.
   mes destino es más corto, cae en su último día (31/01 → 28/02).
 - **Renovaciones de costos:** se toma `fechaRenovacion` y se corre según la frecuencia
   hasta la próxima fecha >= hoy.
+- **Propuestas:** total = Σ cantidad × precio − descuento (nunca negativo; `lib/propuestas.ts`).
+  Número = ID con prefijo (`P-000123` propuesta, `C-000123` cotización). Una ENVIADA con
+  `fechaVencimiento` pasada se muestra VENCIDA (el día del vencimiento todavía vale). El cliente
+  responde una sola vez; desde el CRM se puede marcar aceptada/rechazada a mano o reabrir
+  (borra la respuesta). Abrir el link con sesión del CRM no cuenta como "vista".
 - **Fechas:** WordPress manda `'YYYY-MM-DD'`. Nunca `new Date('YYYY-MM-DD')`
   (se interpreta en UTC y en Argentina cae el día anterior): usar `lib/fechas.ts`
   y `lib/format.ts`. La zona horaria del negocio es `America/Argentina/Buenos_Aires`.
@@ -139,13 +158,16 @@ Tipos en `lib/types.ts`. WordPress los guarda como custom post types.
 - Cobro por unidad (casillas de correo): activas por mes, altas y bajas
 - Pagos de costos (sueldos, suscripciones): registrar pago por período, estado del mes,
   historial, "Por pagar" en el dashboard y categorías
+- Propuestas y cotizaciones: secciones libres con plantillas editables, ítems, descuento,
+  cuentas bancarias por documento, link público con aceptar/rechazar (firma con nombre y aviso
+  por email), PDF, historial (enviada, vista, respondida) y "Crear proyecto" desde una aceptada
+- Nueva marca Hippo (2026): paleta, Inter, logo y documentos
 - Tareas del equipo: tablero por estado, responsables, prioridad, fecha límite, vínculo a proyectos
 - Dashboard "Hoy": por cobrar, cobrado y recurrentes del mes, deadlines, renovaciones,
   acciones pendientes y datos incompletos
 
 ### Pendiente
 - Notas y timeline por cliente
-- Cotizaciones
 - Totales consolidados en una moneda (tipo de cambio)
 
 ### Calidad

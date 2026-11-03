@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { diasEntre, finDeMes, hoy, indiceMes, mesesCompletos, parseFecha, sumarDias, sumarMeses, sumarMesesMismoDia } from './fechas'
+import { diasEntre, fechaEnZona, finDeMes, hoy, indiceMes, mesesCompletos, parseFecha, sumarDias, sumarMeses, sumarMesesMismoDia } from './fechas'
 import { fecha } from './test-utils'
 
 describe('parseFecha', () => {
@@ -85,5 +85,13 @@ describe('otras utilidades', () => {
 
   it('indiceMes compara meses de distintos años', () => {
     expect(indiceMes(fecha(2027, 1, 1)) - indiceMes(fecha(2026, 12, 31))).toBe(1)
+  })
+})
+
+describe('fechaEnZona', () => {
+  it('convierte un instante UTC al día en Argentina', () => {
+    expect(fechaEnZona('2026-11-03T02:30:00Z')).toEqual({ anio: 2026, mes: 10, dia: 2 })
+    expect(fechaEnZona('2026-11-03T12:00:00Z')).toEqual({ anio: 2026, mes: 10, dia: 3 })
+    expect(fechaEnZona('cualquier cosa')).toBeNull()
   })
 })

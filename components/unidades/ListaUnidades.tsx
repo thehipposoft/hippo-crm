@@ -48,7 +48,7 @@ export const ListaUnidades = ({ proyectoId, unidades, etiqueta, hoyIso }: ListaU
             onClick={() => setFiltro(opcion)}
             aria-pressed={filtro === opcion}
             className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              filtro === opcion ? 'bg-brand-blue text-white' : 'border border-slate-200 bg-white text-dark-text/60 hover:bg-brand-blue/10'
+              filtro === opcion ? 'bg-dark-text text-white' : 'border border-slate-200 bg-white text-dark-text/60 hover:bg-brand-blue/10'
             }`}
           >
             {opcion === 'ACTIVAS' ? 'Activas' : `Todas (${unidades.length})`}

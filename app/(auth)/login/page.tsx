@@ -1,7 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+
+// Logo del manual de marca (proporción 1350 × 338)
+const LOGO_ANCHO = 160
+const LOGO_ALTO = 40
 
 export default function LoginPage() {
   const router = useRouter()
@@ -36,8 +41,9 @@ export default function LoginPage() {
     <main className="min-h-screen bg-brand-white flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="mb-10 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight text-dark-text">
-            Hippo CRM
+          <h1 className="flex flex-col items-center gap-3">
+            <Image src="/hippo-logo.svg" alt="Hippo" width={LOGO_ANCHO} height={LOGO_ALTO} priority />
+            <span className="text-xs font-medium uppercase tracking-[0.25em] text-dark-text/40">CRM</span>
           </h1>
           <p className="mt-1 text-sm text-dark-text/50">
             Iniciá sesión para continuar
@@ -135,7 +141,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-2 rounded-lg bg-brand-blue hover:brightness-95 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2.5 text-sm font-medium text-white transition"
+            className="w-full mt-2 rounded-lg bg-dark-text hover:bg-dark-text/85 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2.5 text-sm font-medium text-white transition"
           >
             {loading ? 'Ingresando...' : 'Ingresar'}
           </button>

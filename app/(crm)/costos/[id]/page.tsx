@@ -43,7 +43,7 @@ export default async function CostoDetallePage({ params }: { params: Promise<{ i
         <div className="flex flex-wrap items-start gap-2">
           <Link
             href={`/costos/${costo.id}/pagos/nuevo`}
-            className="rounded-lg bg-brand-blue px-4 py-2 text-sm font-medium text-white transition hover:brightness-95"
+            className="rounded-lg bg-dark-text px-4 py-2 text-sm font-medium text-white transition hover:bg-dark-text/85"
           >
             Registrar pago
           </Link>

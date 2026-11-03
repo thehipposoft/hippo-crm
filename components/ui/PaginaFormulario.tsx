@@ -5,11 +5,13 @@ interface PaginaFormularioProps {
   titulo: string
   volverHref: string
   volverLabel: string
+  // Formularios grandes (propuestas): más ancho
+  ancho?: boolean
   children: ReactNode
 }
 
-export const PaginaFormulario = ({ titulo, volverHref, volverLabel, children }: PaginaFormularioProps) => (
-  <div className="max-w-xl px-4 py-8 sm:px-8">
+export const PaginaFormulario = ({ titulo, volverHref, volverLabel, ancho = false, children }: PaginaFormularioProps) => (
+  <div className={`${ancho ? 'max-w-4xl' : 'max-w-xl'} px-4 py-8 sm:px-8`}>
     <div className="mb-7">
       <Link href={volverHref} className="text-xs text-dark-text/50 transition-colors hover:text-dark-text">
         ← {volverLabel}

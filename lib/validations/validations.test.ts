@@ -3,6 +3,7 @@ import { clienteSchema } from './cliente'
 import { costoSchema } from './costo'
 import { pagoSchema } from './pago'
 import { proyectoSchema } from './proyecto'
+import { cuentaBancariaSchema, propuestaSchema, respuestaPropuestaSchema } from './propuesta'
 import { validarFormulario } from './validar'
 
 const formData = (campos: Record<string, string>): FormData => {
@@ -203,5 +204,63 @@ describe('pagoCostoSchema', () => {
       periodo: 'Período inválido.',
       monto: 'El monto es obligatorio.',
     })
+  })
+})
+
+describe('propuestaSchema', () => {
+  const base = {
+    titulo: 'Sitio web',
+    cliente_id: '3',
+    proyecto_id: '',
+    fecha: '2026-11-03',
+    fecha_vencimiento: '2026-11-18',
+    descuento: '',
+    items: JSON.stringify([{ descripcion: ' Diseño ', detalle: '', plazo: '1 mes', cantidad: '2', precio: '375,5' }]),
+    secciones: JSON.stringify([{ titulo: 'Alcance', contenido: '- uno' }]),
+    cuentas: JSON.stringify([4]),
+  }
+
+  it('arma el payload con JSON parseado y valores por defecto', () => {
+    const r = validarFormulario(propuestaSchema, formData(base))
+    expect(r.ok && r.datos).toMatchObject({
+      tipo: 'PROPUESTA',
+      idioma: 'es',
+      moneda: 'USD',
+      cliente_id: 3,
+      proyecto_id: null,
+      descuento: 0,
+      items: [{ descripcion: 'Diseño', detalle: null, plazo: '1 mes', cantidad: 2 }],
+      cuentas: [4],
+    })
+  })
+
+  it('ítems: mensaje con el número del ítem', () => {
+    const r = validarFormulario(propuestaSchema, formData({ ...base, items: JSON.stringify([{ descripcion: 'a', cantidad: 1, precio: 1 }, { descripcion: '', cantidad: 1, precio: 1 }]) }))
+    expect(!r.ok && r.estado.errores.items).toBe('Ítem 2: falta la descripción.')
+  })
+
+  it('sin ítems, sin cliente y vencimiento anterior', () => {
+    const r = validarFormulario(propuestaSchema, formData({ ...base, items: '[]', cliente_id: '', fecha_vencimiento: '2026-11-01' }))
+    expect(!r.ok && r.estado.errores).toMatchObject({ items: 'Agregá al menos un ítem.', cliente_id: 'Elegí un cliente.' })
+  })
+
+  it('JSON roto', () => {
+    const r = validarFormulario(propuestaSchema, formData({ ...base, secciones: '{no' }))
+    expect(!r.ok && r.estado.errores.secciones).toBe('Secciones inválidas.')
+  })
+})
+
+describe('respuestaPropuestaSchema', () => {
+  it('aceptar pide nombre; rechazar no', () => {
+    expect(respuestaPropuestaSchema.safeParse({ accion: 'ACEPTAR', nombre: '  ' }).success).toBe(false)
+    expect(respuestaPropuestaSchema.safeParse({ accion: 'RECHAZAR' }).success).toBe(true)
+    expect(respuestaPropuestaSchema.safeParse({ accion: 'BORRAR', nombre: 'x' }).success).toBe(false)
+  })
+})
+
+describe('cuentaBancariaSchema', () => {
+  it('moneda opcional', () => {
+    const r = validarFormulario(cuentaBancariaSchema, formData({ nombre: 'PayPal', moneda: '', detalle: '@hippo' }))
+    expect(r.ok && r.datos).toEqual({ nombre: 'PayPal', moneda: null, detalle: '@hippo' })
   })
 })

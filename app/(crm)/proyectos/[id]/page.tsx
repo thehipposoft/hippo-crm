@@ -129,7 +129,7 @@ export default async function ProyectoDetallePage({
         <h2 className="text-sm font-semibold text-dark-text">Pagos</h2>
         <Link
           href={`/pagos/nuevo?proyecto=${proyecto.id}&volver=/proyectos/${proyecto.id}`}
-          className="flex items-center gap-2 rounded-lg bg-brand-blue hover:brightness-95 px-3.5 py-2 text-xs font-medium text-white transition-colors"
+          className="flex items-center gap-2 rounded-lg bg-dark-text hover:bg-dark-text/85 px-3.5 py-2 text-xs font-medium text-white transition-colors"
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

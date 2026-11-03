@@ -8,7 +8,7 @@ export default function NotFound() {
       <p className="mt-1 max-w-sm text-sm text-dark-text/60">Puede que se haya eliminado o que el link esté mal.</p>
       <Link
         href="/"
-        className="mt-6 rounded-lg bg-brand-blue px-4 py-2 text-sm font-medium text-white transition hover:brightness-95"
+        className="mt-6 rounded-lg bg-dark-text px-4 py-2 text-sm font-medium text-white transition hover:bg-dark-text/85"
       >
         Ir al inicio
       </Link>

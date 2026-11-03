@@ -5,8 +5,9 @@ export const EMPRESA = {
   web: 'thehipposoft.com',
   email: 'diego@thehipposoft.com',
   identificacionFiscal: null as string | null,
-  logo: '/logo.png',
-  // Proporción del logo (1144 × 451)
-  logoAncho: 160,
-  logoAlto: 63,
+  logo: '/hippo-logo.svg',
+  logoBlanco: '/hippo-logo-blanco.svg',
+  // Proporción del logo (1350 × 338)
+  logoAncho: 128,
+  logoAlto: 32,
 }

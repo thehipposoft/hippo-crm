@@ -3,6 +3,7 @@ import { SaldoProyecto } from '@/components/proyectos/SaldoProyecto'
 import { StatusBadge } from '@/components/proyectos/StatusBadge'
 import { pagosEsteMes } from '@/lib/analytics'
 import { costosPorPagar, etiquetaPeriodo } from '@/lib/costos'
+import { propuestasAbiertas, totalesPropuesta } from '@/lib/propuestas'
 import {
   accionesPendientes,
   datosIncompletos,
@@ -16,7 +17,7 @@ import {
 import { diasEntre, hoy, parseFecha } from '@/lib/fechas'
 import { DIAS_AVISO_TAREAS, diasParaVencer, tareasUrgentes } from '@/lib/tareas'
 import { formatCuota, formatFechaLarga, formatMonto, SUFIJO_FRECUENCIA } from '@/lib/format'
-import type { CostoRow, Moneda, PagoRow, ProyectoRow, TareaRow } from '@/lib/types'
+import type { CostoRow, Moneda, PagoRow, PropuestaRow, ProyectoRow, TareaRow } from '@/lib/types'
 import { FechaRelativa, FilaLista, ListaSeccion, Seccion, TarjetaMontos } from '@/components/ui/Paneles'
 
 const MAX_DEUDAS = 8
@@ -29,9 +30,10 @@ interface HomeDashboardProps {
   pagos: PagoRow[]
   costos: CostoRow[]
   tareas: TareaRow[]
+  propuestas: PropuestaRow[]
 }
 
-export const HomeDashboard = ({ userName, proyectos, pagos, costos, tareas }: HomeDashboardProps) => {
+export const HomeDashboard = ({ userName, proyectos, pagos, costos, tareas, propuestas }: HomeDashboardProps) => {
   const fechaHoy = hoy()
   const deadlines = deadlinesProximos(proyectos, fechaHoy)
   const renovaciones = renovacionesProximas(costos, fechaHoy)
@@ -41,6 +43,7 @@ export const HomeDashboard = ({ userName, proyectos, pagos, costos, tareas }: Ho
   const incompletos = datosIncompletos(proyectos)
   const urgentes = tareasUrgentes(tareas, fechaHoy)
   const porPagar = costosPorPagar(costos, fechaHoy)
+  const abiertas = propuestasAbiertas(propuestas, fechaHoy)
 
   const aCobrarEsteMes: Partial<Record<Moneda, number>> = {}
   for (const r of recurrentes) {
@@ -250,6 +253,32 @@ export const HomeDashboard = ({ userName, proyectos, pagos, costos, tareas }: Ho
                   detalle={`${etiquetaPeriodo(resumen.periodo)}${resumen.estado === 'PARCIAL' ? ' · pago parcial' : ''}`}
                   lateral={
                     <span className="text-sm font-medium text-dark-text tabular-nums">{formatMonto(resumen.falta, costo.moneda)}</span>
+                  }
+                />
+              ))}
+            </ListaSeccion>
+          )}
+        </Seccion>
+
+        <Seccion
+          titulo="Propuestas esperando respuesta"
+          descripcion="Enviadas y todavía vigentes"
+          cantidad={abiertas.length}
+          verTodoHref="/propuestas?estado=ENVIADA"
+          vacio="Ninguna propuesta pendiente de respuesta."
+        >
+          {abiertas.length > 0 && (
+            <ListaSeccion>
+              {abiertas.map((p) => (
+                <FilaLista
+                  key={p.id}
+                  href={`/propuestas/${p.id}`}
+                  titulo={p.titulo}
+                  detalle={`${p.clienteNombre ?? ''}${p.vistaEl ? ' · la vio' : ' · todavía no la abrió'}`}
+                  lateral={
+                    <span className="text-sm font-medium text-dark-text tabular-nums">
+                      {formatMonto(totalesPropuesta(p.items, p.descuento).total, p.moneda)}
+                    </span>
                   }
                 />
               ))}

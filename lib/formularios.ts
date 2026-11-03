@@ -11,7 +11,7 @@ export const ESTADO_FORMULARIO_INICIAL: EstadoFormulario = { error: null, errore
 
 // Destino después de guardar: solo rutas internas del CRM (evita redirecciones a otros sitios)
 // Exactamente "/" o una sección del CRM (nunca "//otro-sitio", que el navegador trata como externo)
-const RUTAS_PERMITIDAS = /^\/$|^\/(proyectos|clientes|pagos|costos|tareas)(\/[\w-]+)*$/
+const RUTAS_PERMITIDAS = /^\/$|^\/(proyectos|clientes|pagos|costos|tareas|propuestas)(\/[\w-]+)*$/
 
 export const destinoSeguro = (valor: unknown, porDefecto: string): string =>
   typeof valor === 'string' && RUTAS_PERMITIDAS.test(valor) ? valor : porDefecto

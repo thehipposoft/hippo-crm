@@ -21,14 +21,23 @@ export default function LoginPage() {
     setLoading(true)
     setError(null)
 
-    const res = await fetch('/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: email, password }),
-    })
+    let res: Response
+    try {
+      res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: email, password }),
+      })
+    } catch {
+      setError('Sin conexión. Revisá internet y probá de nuevo.')
+      setLoading(false)
+      return
+    }
 
     if (!res.ok) {
-      setError('Email o contraseña incorrectos.')
+      // El server dice si es la contraseña o si falla la conexión con WordPress
+      const datos = (await res.json().catch(() => null)) as { error?: string } | null
+      setError(datos?.error ?? 'No se pudo iniciar sesión. Probá de nuevo.')
       setLoading(false)
       return
     }
@@ -56,12 +65,12 @@ export default function LoginPage() {
               htmlFor="email"
               className="block text-xs font-medium text-dark-text/60 mb-1.5"
             >
-              Email
+              Email o usuario de WordPress
             </label>
             <input
               id="email"
-              type="email"
-              autoComplete="email"
+              type="text"
+              autoComplete="username"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -75,7 +84,7 @@ export default function LoginPage() {
               htmlFor="password"
               className="block text-xs font-medium text-dark-text/60 mb-1.5"
             >
-              Contraseña
+              Contraseña de aplicación
             </label>
             <div className="relative">
               <input

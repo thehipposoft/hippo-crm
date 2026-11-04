@@ -51,3 +51,24 @@ export const wpGetOpcional = async <T>(path: string, porDefecto: T): Promise<T> 
     return porDefecto
   }
 }
+
+// Login: sin token y sin tirar error, para poder leer el motivo que devuelve WordPress
+export type RespuestaLogin =
+  | { ok: true; token: string; user: { name: string } }
+  | { ok: false; status: number | null; codigo: string | null }
+
+export const wpLogin = async (username: string, password: string): Promise<RespuestaLogin> => {
+  try {
+    const res = await fetch(`${process.env.WP_API_URL}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+      cache: 'no-store',
+    })
+    const datos = (await res.json().catch(() => null)) as { token?: string; user?: { name: string }; codigo?: string } | null
+    if (res.ok && datos?.token && datos.user) return { ok: true, token: datos.token, user: datos.user }
+    return { ok: false, status: res.status, codigo: datos?.codigo ?? null }
+  } catch {
+    return { ok: false, status: null, codigo: null }
+  }
+}

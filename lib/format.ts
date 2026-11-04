@@ -58,3 +58,11 @@ export const formatCuota = (
   if (proyecto.unidad) return `${monto} / ${proyecto.unidad}`
   return proyecto.frecuenciaPago ? `${monto} ${SUFIJO_FRECUENCIA[proyecto.frecuenciaPago]}` : monto
 }
+
+// Tamaño de archivo: "850 KB", "6,2 MB"
+const KB = 1024
+const MB = KB * KB
+export const formatTamano = (bytes: number): string => {
+  if (bytes >= MB) return `${(bytes / MB).toLocaleString(LOCALE, { maximumFractionDigits: 1 })} MB`
+  return `${Math.max(1, Math.round(bytes / KB))} KB`
+}

@@ -7,9 +7,9 @@ import { crearPropuesta } from '../actions'
 export default async function NuevaPropuestaPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tipo?: string; cliente?: string; plantilla?: string }>
+  searchParams: Promise<{ tipo?: string; cliente?: string; proyecto?: string; plantilla?: string }>
 }) {
-  const [{ tipo, cliente, plantilla }, datos] = await Promise.all([searchParams, datosFormPropuesta()])
+  const [{ tipo, cliente, proyecto, plantilla }, datos] = await Promise.all([searchParams, datosFormPropuesta()])
   const tipoInicial = TIPO_PROPUESTA_VALUES.find((t) => t === tipo) ?? 'PROPUESTA'
 
   return (
@@ -23,7 +23,7 @@ export default async function NuevaPropuestaPage({
         accion={crearPropuesta}
         textoBoton="Guardar borrador"
         {...datos}
-        inicial={{ tipo: tipoInicial, clienteId: cliente, plantilla }}
+        inicial={{ tipo: tipoInicial, clienteId: cliente, proyectoId: proyecto, plantilla }}
       />
     </PaginaFormulario>
   )

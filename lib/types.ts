@@ -51,6 +51,31 @@ export type ProyectoRow = {
   // Cobro por unidad (ej. 'casilla'): valor = precio por unidad por mes. null = cobro normal
   unidad?: string | null
   unidades?: UnidadRow[]
+  // Registro manual de la propuesta (hecha fuera del CRM). 'YYYY-MM-DD'
+  propuestaEnviada?: string | null
+  propuestaAprobada?: string | null
+  archivos?: ArchivoRow[]
+}
+
+export const TIPO_ARCHIVO_VALUES = ['PROPUESTA', 'CONTRATO', 'OTRO'] as const
+export type TipoArchivo = (typeof TIPO_ARCHIVO_VALUES)[number]
+
+export const TIPOS_ARCHIVO: { value: TipoArchivo; label: string }[] = [
+  { value: 'PROPUESTA', label: 'Propuesta' },
+  { value: 'CONTRATO', label: 'Contrato' },
+  { value: 'OTRO', label: 'Otro' },
+]
+
+// Archivo de un proyecto (privado en WordPress: se baja con un link temporal)
+export type ArchivoRow = {
+  id: number
+  nombre: string
+  tipo: TipoArchivo
+  mime: string | null
+  // Bytes
+  tamano: number
+  // Fecha y hora UTC (ISO 8601)
+  subidoEl: string | null
 }
 
 // Unidad cobrada por mes dentro de un proyecto (ej. una casilla de correo)

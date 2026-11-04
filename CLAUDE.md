@@ -66,7 +66,8 @@ Tipos en `lib/types.ts`. WordPress los guarda como custom post types.
 | Entidad  | Endpoints                                                    | Campos principales |
 |----------|--------------------------------------------------------------|--------------------|
 | Cliente  | `GET/POST /clientes`, `GET/PUT /clientes/:id`, `GET /clientes/:id/proyectos` | nombre, contacto, telefono, emailContacto, pais |
-| Proyecto | `GET/POST /proyectos`, `GET/PUT /proyectos/:id`, `GET /proyectos/:id/pagos` | clienteId, estado, fechaInicio, deadline, tipoProyecto (ON_OFF \| RECURRENTE), valor, moneda, frecuenciaPago, url, accionPendiente |
+| Proyecto | `GET/POST /proyectos`, `GET/PUT /proyectos/:id`, `GET /proyectos/:id/pagos` | clienteId, estado, fechaInicio, deadline, tipoProyecto (ON_OFF \| RECURRENTE), valor, moneda, frecuenciaPago, url, accionPendiente, propuestaEnviada, propuestaAprobada (registro manual), archivos |
+| Archivo de proyecto | `POST /proyectos/:id/archivos/ticket` → `{ url, maxMb }` (el navegador sube ahí, multipart `archivo`), `POST /archivos/:id/ticket` → `{ url }` (ver/bajar), `DELETE /archivos/:id` (vienen embebidos en el proyecto como `archivos`) | nombre, tipo (PROPUESTA \| CONTRATO \| OTRO), mime, tamano, subidoEl |
 | Pago     | `GET/POST /pagos`, `GET/PUT/DELETE /pagos/:id`               | proyectoId, fecha, monto, moneda, medioPago, notas |
 | Unidad   | `POST /unidades`, `GET/PUT/DELETE /unidades/:id` (vienen embebidas en el proyecto como `unidades`) | proyectoId, nombre, fechaAlta, fechaBaja, notas |
 | Tarea    | `GET/POST /tareas`, `GET/PUT/DELETE /tareas/:id`, `GET /usuarios` (equipo: usuarios que entraron al CRM) | titulo, descripcion, estado (PENDIENTE \| EN_CURSO \| BLOQUEADA \| HECHA), prioridad (ALTA \| MEDIA \| BAJA), responsableId, fechaLimite, proyectoId, fechaHecha |
@@ -83,6 +84,10 @@ Tipos en `lib/types.ts`. WordPress los guarda como custom post types.
   como vista) y `POST /publico/propuesta/:token/respuesta` `{ accion: ACEPTAR | RECHAZAR, nombre, comentario }`
   (409 si ya fue respondida, 410 si venció). WordPress avisa por email (`HIPPO_CRM_EMAIL_AVISOS` en
   wp-config.php, o el email del admin).
+- Archivos: privados en WordPress (carpeta `uploads/hippo-crm-privado`, bloqueada por .htaccess,
+  nombres aleatorios). Se suben y se bajan directo entre el navegador y WordPress con tickets
+  temporales (subida: 15 min, un uso; descarga: 5 min), porque Netlify corta los requests de más de
+  ~6 MB. Máx. 25 MB; PDF, Word, PowerPoint, Keynote e imágenes.
 - El **estado** es del proyecto, no del cliente:
   PROSPECTO | EN_NEGOCIACION | ACTIVO | EN_PAUSA | CERRADO | PERDIDO
 - Monedas: USD | ARS | AUD | EUR. Frecuencias: SEMANAL | MENSUAL | ANUAL
@@ -117,6 +122,10 @@ Tipos en `lib/types.ts`. WordPress los guarda como custom post types.
   `fechaVencimiento` pasada se muestra VENCIDA (el día del vencimiento todavía vale). El cliente
   responde una sola vez; desde el CRM se puede marcar aceptada/rechazada a mano o reabrir
   (borra la respuesta). Abrir el link con sesión del CRM no cuenta como "vista".
+- **Propuesta de un proyecto** (`lib/propuestaProyecto.ts`): enviada / aprobada = el registro manual
+  del proyecto si existe (propuestas hechas fuera del CRM); si no, la primera propuesta del CRM
+  vinculada (`proyectoId`) enviada / aceptada (día en Argentina). "Crear proyecto" desde una
+  propuesta aceptada la deja vinculada al proyecto nuevo.
 - **Fechas:** WordPress manda `'YYYY-MM-DD'`. Nunca `new Date('YYYY-MM-DD')`
   (se interpreta en UTC y en Argentina cae el día anterior): usar `lib/fechas.ts`
   y `lib/format.ts`. La zona horaria del negocio es `America/Argentina/Buenos_Aires`.
@@ -161,6 +170,8 @@ Tipos en `lib/types.ts`. WordPress los guarda como custom post types.
 - Propuestas y cotizaciones: secciones libres con plantillas editables, ítems, descuento,
   cuentas bancarias por documento, link público con aceptar/rechazar (firma con nombre y aviso
   por email), PDF, historial (enviada, vista, respondida) y "Crear proyecto" desde una aceptada
+- Sección "Propuesta" en la ficha del proyecto: fechas de envío y aprobación (del CRM o a mano),
+  propuestas vinculadas y archivos (subir la propuesta en PDF, contratos, etc.)
 - Nueva marca Hippo (2026): paleta, Inter, logo y documentos
 - Tareas del equipo: tablero por estado, responsables, prioridad, fecha límite, vínculo a proyectos
 - Dashboard "Hoy": por cobrar, cobrado y recurrentes del mes, deadlines, renovaciones,

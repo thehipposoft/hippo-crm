@@ -4,12 +4,13 @@ import { wpGet, wpGetONotFound, wpGetOpcional } from '@/lib/wp'
 import { TareasProyecto } from '@/components/tareas/TareasProyecto'
 import { StatusBadge } from '@/components/proyectos/StatusBadge'
 import { PagosTable } from '@/components/pagos/PagosTable'
-import { FRECUENCIAS_PAGO, TIPOS_PROYECTO, type FrecuenciaPago, type PagoRow, type ProyectoRow, type TareaRow } from '@/lib/types'
+import { FRECUENCIAS_PAGO, TIPOS_PROYECTO, type FrecuenciaPago, type PagoRow, type PropuestaRow, type ProyectoRow, type TareaRow } from '@/lib/types'
 import { formatFecha, formatMonto } from '@/lib/format'
 import { resumenPendiente } from '@/lib/proyectos'
 import { SaldoProyecto } from '@/components/proyectos/SaldoProyecto'
 import { SeccionUnidades } from '@/components/unidades/SeccionUnidades'
 import { cobraPorUnidad } from '@/lib/unidades'
+import { SeccionPropuesta } from '@/components/proyectos/SeccionPropuesta'
 
 const UNIDAD_PERIODO: Record<FrecuenciaPago, [string, string]> = {
   SEMANAL: ['semana', 'semanas'],
@@ -36,9 +37,10 @@ export default async function ProyectoDetallePage({
   const { id } = await params
   const proyecto = await wpGetONotFound<ProyectoRow>(`/proyectos/${id}`)
 
-  const [pagos, tareas] = await Promise.all([
+  const [pagos, tareas, propuestas] = await Promise.all([
     wpGet<PagoRow[]>(`/proyectos/${id}/pagos`),
     wpGetOpcional<TareaRow[]>('/tareas', []),
+    wpGetOpcional<PropuestaRow[]>('/propuestas', []),
   ])
   const resumen = resumenPendiente(proyecto, pagos)
   const porUnidad = cobraPorUnidad(proyecto)
@@ -120,6 +122,8 @@ export default async function ProyectoDetallePage({
           </p>
         </div>
       </div>
+
+      <SeccionPropuesta proyecto={proyecto} propuestas={propuestas} />
 
       <TareasProyecto proyectoId={proyecto.id} tareas={tareas} />
 

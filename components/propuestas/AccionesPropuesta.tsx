@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useSyncExternalStore, useTransition } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   cambiarEstadoPropuesta,
   duplicarPropuesta,
@@ -13,6 +14,8 @@ import { rutaPublicaPropuesta } from '@/lib/propuestas'
 import type { EstadoPropuesta, PropuestaRow } from '@/lib/types'
 
 const MS_COPIADO = 2000
+// Si después de cambiar el estado la ficha no se actualizó en este tiempo, se recarga la página
+const MS_ESPERA_REFRESCO = 2500
 
 const BOTON = 'rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-dark-text transition-colors hover:bg-brand-blue/10 disabled:opacity-50'
 
@@ -25,23 +28,42 @@ interface AccionesPropuestaProps {
 }
 
 export const AccionesPropuesta = ({ propuesta }: AccionesPropuestaProps) => {
+  const router = useRouter()
   const [error, setError] = useState<string | null>(null)
-  const [pending, startTransition] = useTransition()
+  const [pending, setPending] = useState(false)
   const [confirmarBorrado, setConfirmarBorrado] = useState(false)
   const [nombrePlantilla, setNombrePlantilla] = useState<string | null>(null)
   const [copiado, setCopiado] = useState(false)
   const origen = useOrigen()
   const etiqueta = propuesta.tipo === 'PROPUESTA' ? 'propuesta' : 'cotización'
+  const [estadoEsperado, setEstadoEsperado] = useState<EstadoPropuesta | null>(null)
 
-  const ejecutar = (accion: () => Promise<{ error: string | null }>, alTerminar?: () => void) => {
+  // Next a veces no aplica la revalidación de la acción (pasa ~1 de cada 8 veces en las pruebas):
+  // si el estado nuevo no llega, se recarga la página para no mostrar datos viejos.
+  useEffect(() => {
+    if (!estadoEsperado || propuesta.estado === estadoEsperado) return
+    const timer = setTimeout(() => window.location.reload(), MS_ESPERA_REFRESCO)
+    return () => clearTimeout(timer)
+  }, [estadoEsperado, propuesta.estado])
+
+  // Sin useTransition: si la revalidación no llega, la transición queda pendiente y traba los botones
+  const ejecutar = async (accion: () => Promise<{ error: string | null }>, alTerminar?: () => void) => {
     setError(null)
-    startTransition(async () => {
+    setPending(true)
+    try {
       const resultado = await accion()
-      if (resultado.error) setError(resultado.error)
-      else alTerminar?.()
-    })
+      if (resultado.error) return setError(resultado.error)
+      alTerminar?.()
+      router.refresh()
+    } finally {
+      setPending(false)
+    }
   }
-  const cambiarEstado = (estado: EstadoPropuesta) => ejecutar(() => cambiarEstadoPropuesta(propuesta.id, estado))
+  const cambiarEstado = (estado: EstadoPropuesta) =>
+    ejecutar(
+      () => cambiarEstadoPropuesta(propuesta.id, estado),
+      () => setEstadoEsperado(estado)
+    )
 
   const url = propuesta.token ? `${origen}${rutaPublicaPropuesta(propuesta.token)}` : null
   const copiar = async () => {

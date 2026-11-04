@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { aInputFecha, formatDiasRelativos, formatFecha, formatFechaLarga, formatMonto } from './format'
+import { aInputFecha, formatDiasRelativos, formatFecha, formatFechaLarga, formatMonto, formatTamano } from './format'
 import { fecha, normalizarEspacios } from './test-utils'
 
 describe('formatFecha', () => {
@@ -48,5 +48,13 @@ describe('otros formatos', () => {
 
   it('formatFechaLarga empieza con mayúscula', () => {
     expect(formatFechaLarga(fecha(2026, 10, 26))).toBe('Lunes, 26 de octubre')
+  })
+})
+
+describe('formatTamano', () => {
+  it('KB y MB', () => {
+    expect(formatTamano(300)).toBe('1 KB')
+    expect(formatTamano(850 * 1024)).toBe('850 KB')
+    expect(formatTamano(6.24 * 1024 * 1024)).toBe('6,2 MB')
   })
 })

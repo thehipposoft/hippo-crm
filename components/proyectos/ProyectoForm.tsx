@@ -26,9 +26,11 @@ interface ProyectoFormProps {
   proyecto?: Partial<ProyectoRow>
   // Proyectos viejos sin moneda: se propone la de sus pagos
   monedaInicial?: Moneda
+  // Alta desde una propuesta aceptada: al guardar, la propuesta queda vinculada al proyecto
+  desdePropuesta?: number
 }
 
-export const ProyectoForm = ({ accion, textoBoton, clientes, proyecto, monedaInicial }: ProyectoFormProps) => {
+export const ProyectoForm = ({ accion, textoBoton, clientes, proyecto, monedaInicial, desdePropuesta }: ProyectoFormProps) => {
   const [tipoProyecto, setTipoProyecto] = useState<TipoProyecto>(proyecto?.tipoProyecto ?? 'ON_OFF')
   const [porUnidad, setPorUnidad] = useState(Boolean(proyecto?.unidad))
   const [unidad, setUnidad] = useState(proyecto?.unidad ?? UNIDAD_POR_DEFECTO)
@@ -36,6 +38,7 @@ export const ProyectoForm = ({ accion, textoBoton, clientes, proyecto, monedaIni
 
   return (
     <Formulario accion={accion} textoBoton={textoBoton}>
+      {desdePropuesta && <input type="hidden" name="desde_propuesta" value={desdePropuesta} />}
       <Campo nombre="nombre" label="Nombre *">
         <Input name="nombre" type="text" required defaultValue={proyecto?.nombre} placeholder="Nombre del proyecto" />
       </Campo>

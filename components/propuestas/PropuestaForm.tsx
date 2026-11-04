@@ -32,7 +32,7 @@ interface PropuestaFormProps {
   // Solo en el alta
   plantillas?: OpcionPlantilla[]
   propuesta?: PropuestaRow
-  inicial?: { tipo?: TipoPropuesta; clienteId?: string; plantilla?: string }
+  inicial?: { tipo?: TipoPropuesta; clienteId?: string; proyectoId?: string; plantilla?: string }
   fechaHoy: string
   vencimientoSugerido: string
 }
@@ -198,7 +198,7 @@ export const PropuestaForm = ({
               </Select>
             </Campo>
             <Campo nombre="proyecto_id" label="Proyecto">
-              <Select name="proyecto_id" defaultValue={propuesta?.proyectoId ?? ''} key={clienteId}>
+              <Select name="proyecto_id" defaultValue={propuesta?.proyectoId ?? inicial?.proyectoId ?? ''} key={clienteId}>
                 <option value="">Sin proyecto</option>
                 {proyectosDelCliente.map((p) => (
                   <option key={p.id} value={p.id}>

@@ -69,6 +69,7 @@ lib/
   proyectos.ts                → moneda del proyecto, períodos, saldo y cobro de recurrentes
   dashboard.ts                → cálculos del dashboard (deadlines, renovaciones, por cobrar, recurrentes)
   analytics.ts                → agregaciones para los gráficos y costos del mes
+  propuestaProyecto.ts        → fechas de envío / aprobación de la propuesta de un proyecto
   propuestas.ts               → totales, número, estado visible (vencida), plantillas base, cuentas sugeridas
   propuestasServer.ts         → datos del form de propuestas (solo server)
   markdown.ts                 → formato simple de las secciones (negrita, listas, subtítulos, tablas)
@@ -170,6 +171,12 @@ En local se trabaja contra los datos reales de producción: cuidado al crear, ed
   que devuelve WordPress (`PropuestaPublica`); un BORRADOR da 404. Con cookie del CRM se pide con
   `?vista=0` para no marcarla como vista
 - Al imprimir, la portada de la propuesta ocupa la primera página y la inversión arranca en página nueva
+
+## Archivos de proyectos
+- Nunca pasan por Next ni por Netlify: la server action pide un ticket a WordPress y el navegador
+  sube (XHR con progreso, `ArchivosProyecto`) o abre la URL de descarga directo en WordPress
+- La subida con progreso hace preflight CORS: WordPress tiene que aceptar el origen del CRM
+  (`includes/cors.php` del plugin: crm.thehipposoft.com y localhost:3000)
 
 ## Pagos de costos
 - Cada pago (`PagoCostoRow`) cubre un **período**: `'YYYY-MM'` (mensual y semanal) o `'YYYY'` (anual).

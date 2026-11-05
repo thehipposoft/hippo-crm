@@ -2,7 +2,8 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { TOKEN_COOKIE } from './lib/cookies'
 
 // Ojo: '/propuesta/' (link del cliente) no es '/propuestas' (CRM)
-const RUTAS_PUBLICAS = ['/estado/', '/propuesta/']
+// '/portal' es el portal de clientes (tiene su propia sesión)
+const RUTAS_PUBLICAS = ['/estado/', '/propuesta/', '/portal']
 
 // Chequeo optimista de sesión: solo mira si existe la cookie. WordPress valida el token.
 export const proxy = (request: NextRequest) => {

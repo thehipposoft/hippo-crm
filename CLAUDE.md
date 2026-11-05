@@ -59,6 +59,11 @@ Estructura, comandos y convenciones detalladas: ver `AGENTS.md`.
   `hippo_token`, junto con `hippo_user_name` (display name del usuario)
 - Logout vía `POST /api/logout` — borra las cookies y redirige a /login
 - El proxy (`proxy.ts`) redirige a /login si falta la cookie; con sesión, /login → /proyectos
+- **Portal de clientes** (`/portal`): auth aparte, sin usuarios de WordPress. Cada persona del
+  cliente es un post `hippo_acceso` (contraseña con `wp_hash_password`). Se invita desde la ficha
+  del cliente: llega un email para crear la contraseña (link de 7 días; restablecer: 1 hora).
+  La sesión (30 días) va en la cookie httpOnly `hippo_portal`, separada de `hippo_token`.
+  5 intentos fallidos bloquean el email 15 minutos. Los links por token (`/estado/`) siguen andando.
 
 ## Modelo de datos
 Tipos en `lib/types.ts`. WordPress los guarda como custom post types.
@@ -84,6 +89,13 @@ Tipos en `lib/types.ts`. WordPress los guarda como custom post types.
   como vista) y `POST /publico/propuesta/:token/respuesta` `{ accion: ACEPTAR | RECHAZAR, nombre, comentario }`
   (409 si ya fue respondida, 410 si venció). WordPress avisa por email (`HIPPO_CRM_EMAIL_AVISOS` en
   wp-config.php, o el email del admin).
+- Accesos al portal (con login): `GET/POST /clientes/:id/accesos`, `PUT/DELETE /accesos/:id`
+  (`{ activo }`; desactivar cierra sus sesiones), `POST /accesos/:id/invitacion` (reenviar).
+  Campos: nombre, email, estado (INVITADO | ACTIVO | DESACTIVADO), invitadoEl, ultimoAcceso
+- Portal (sin login del CRM): `POST /portal/login`, `GET /portal/token?tipo&token`,
+  `POST /portal/clave` `{ tipo: invitacion | reset, token, password }`, `POST /portal/olvide`
+  (siempre 200), `POST /portal/salir` y `GET /portal/estado` (Bearer de la sesión del portal:
+  estado de cuenta + propuestas no borrador + acceso). 401 = sesión vencida, 403 = desactivado
 - Archivos: privados en WordPress (carpeta `uploads/hippo-crm-privado`, bloqueada por .htaccess,
   nombres aleatorios). Se suben y se bajan directo entre el navegador y WordPress con tickets
   temporales (subida: 15 min, un uso; descarga: 5 min), porque Netlify corta los requests de más de
@@ -172,6 +184,8 @@ Tipos en `lib/types.ts`. WordPress los guarda como custom post types.
   por email), PDF, historial (enviada, vista, respondida) y "Crear proyecto" desde una aceptada
 - Sección "Propuesta" en la ficha del proyecto: fechas de envío y aprobación (del CRM o a mano),
   propuestas vinculadas y archivos (subir la propuesta en PDF, contratos, etc.)
+- Portal de clientes: varias personas por cliente invitadas por email, contraseña propia,
+  saldo, próximos vencimientos, pagos con recibos, propuestas para responder, PDF del estado de cuenta
 - Nueva marca Hippo (2026): paleta, Inter, logo y documentos
 - Tareas del equipo: tablero por estado, responsables, prioridad, fecha límite, vínculo a proyectos
 - Dashboard "Hoy": por cobrar, cobrado y recurrentes del mes, deadlines, renovaciones,

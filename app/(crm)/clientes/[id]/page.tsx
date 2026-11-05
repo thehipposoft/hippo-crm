@@ -6,8 +6,9 @@ import { SaldoProyecto } from '@/components/proyectos/SaldoProyecto'
 import { resumenCliente, ULTIMOS_PAGOS } from '@/lib/clientes'
 import { diasEntre, hoy } from '@/lib/fechas'
 import { formatCuota, formatFecha, formatMonto } from '@/lib/format'
-import type { ClienteRow, PagoRow, ProyectoRow } from '@/lib/types'
-import { wpGet, wpGetONotFound } from '@/lib/wp'
+import type { AccesoRow, ClienteRow, PagoRow, ProyectoRow } from '@/lib/types'
+import { wpGet, wpGetONotFound, wpGetOpcional } from '@/lib/wp'
+import { AccesosPortal } from '@/components/clientes/AccesosPortal'
 
 const CLASES_BOTON_SECUNDARIO =
   'rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-dark-text transition-colors hover:bg-brand-blue/10'
@@ -16,9 +17,10 @@ export default async function ClienteDetallePage({ params }: { params: Promise<{
   const { id } = await params
   const cliente = await wpGetONotFound<ClienteRow>(`/clientes/${id}`)
 
-  const [proyectos, pagos] = await Promise.all([
+  const [proyectos, pagos, accesos] = await Promise.all([
     wpGet<ProyectoRow[]>(`/clientes/${id}/proyectos`),
     wpGet<PagoRow[]>('/pagos'),
+    wpGetOpcional<AccesoRow[]>(`/clientes/${id}/accesos`, []),
   ])
 
   const fechaHoy = hoy()
@@ -133,6 +135,8 @@ export default async function ClienteDetallePage({ params }: { params: Promise<{
           )}
         </Seccion>
       </div>
+
+      <AccesosPortal clienteId={cliente.id} accesos={accesos} emailSugerido={cliente.emailContacto} nombreSugerido={cliente.contacto} />
 
       <section>
         <h2 className="mb-4 text-sm font-semibold text-dark-text">Proyectos</h2>

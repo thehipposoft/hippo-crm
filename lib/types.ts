@@ -302,3 +302,30 @@ export type PropuestaPublica = Pick<
   cuentas: { nombre: string; detalle: string }[]
   vencida: boolean
 }
+
+// ==== Portal de clientes ====
+
+export const ESTADO_ACCESO_VALUES = ['INVITADO', 'ACTIVO', 'DESACTIVADO'] as const
+export type EstadoAcceso = (typeof ESTADO_ACCESO_VALUES)[number]
+
+// Persona del cliente con acceso al portal (no es un usuario de WordPress)
+export type AccesoRow = {
+  id: number
+  clienteId: number
+  nombre: string
+  email: string
+  estado: EstadoAcceso
+  // Fecha y hora UTC (ISO 8601)
+  invitadoEl: string | null
+  ultimoAcceso: string | null
+}
+
+export type PropuestaPortal = Pick<
+  PropuestaRow,
+  'id' | 'tipo' | 'titulo' | 'estado' | 'moneda' | 'fecha' | 'fechaVencimiento' | 'descuento' | 'items' | 'token' | 'respondidaEl'
+> & { vencida: boolean }
+
+export type EstadoPortal = EstadoPublico & {
+  propuestas: PropuestaPortal[]
+  acceso: { nombre: string; email: string }
+}

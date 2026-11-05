@@ -34,6 +34,9 @@ app/
     estado-de-cuenta/[clienteId]/   (+ LinkPublico y sus actions)
   estado/[token]/             → link público del cliente: estado de cuenta y recibos (SIN login)
   propuesta/[token]/          → link público de una propuesta o cotización, con aceptar/rechazar (SIN login)
+  portal/                     → portal de clientes con su propia sesión (cookie hippo_portal, SIN login del CRM):
+                                login, olvide/, activar/ y restablecer/ (crear contraseña), salir/ (route),
+                                cuenta/ (panel), cuenta/estado/ (PDF) y cuenta/recibo/[pagoId]/
   api/login, api/logout       → route handlers de sesión
 proxy.ts                      → protección de rutas (ex middleware.ts, convención de Next 16)
 
@@ -72,6 +75,7 @@ lib/
   propuestaProyecto.ts        → fechas de envío / aprobación de la propuesta de un proyecto
   propuestas.ts               → totales, número, estado visible (vencida), plantillas base, cuentas sugeridas
   propuestasServer.ts         → datos del form de propuestas (solo server)
+  portal/                     → portal de clientes: próximos pagos, propuestas, textos es/en, sesión (solo server)
   markdown.ts                 → formato simple de las secciones (negrita, listas, subtítulos, tablas)
   costos.ts                   → pagos de costos: períodos, estado (pagado/parcial/pendiente), sugerencia, por pagar
   pagosCosto.ts               → opciones del selector de período del form de pago de un costo
@@ -160,6 +164,16 @@ En local se trabaja contra los datos reales de producción: cuidado al crear, ed
 - `/estado/[token]` es público (excepción en `proxy.ts`): nunca mostrar notas de pagos,
   acciones pendientes ni datos que no sean del cliente del token. WordPress ya los quita.
 - Datos del emisor (nombre, web, email, ID fiscal) en `lib/empresa.ts`
+
+## Portal de clientes
+- `/portal` es público en `proxy.ts`; la sesión la valida WordPress en cada pedido
+  (`lib/portal/sesion.ts`: sin cookie → `/portal`, 401/403 → `/portal/salir`)
+- Usa `wpPublico` (no `wpFetch`): nunca mandar el token del CRM al portal ni al revés
+- Solo muestra lo que devuelve `GET /portal/estado`: sin notas, archivos ni acciones internas;
+  un recibo de otro cliente da 404. Textos es/en en `lib/portal/textos.ts`
+- Accesos en la ficha del cliente: `AccesosPortal` (+ `clientes/[id]/accesos/actions.ts`)
+- Después de una acción, si la lista no se actualiza en 2,5 s se recarga la página (mismo
+  resguardo que `AccionesPropuesta`: Next a veces no aplica la revalidación)
 
 ## Propuestas y cotizaciones
 - Ítems, secciones y cuentas viajan como JSON en inputs hidden (`items`, `secciones`, `cuentas`); los

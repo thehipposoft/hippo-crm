@@ -72,3 +72,25 @@ export const wpLogin = async (username: string, password: string): Promise<Respu
     return { ok: false, status: null, codigo: null }
   }
 }
+
+// Endpoints públicos y del portal: devuelven status y datos sin tirar error,
+// para poder mostrar el motivo (credenciales, link vencido, etc.)
+export const wpPublico = async <T>(
+  path: string,
+  init: { method?: 'GET' | 'POST'; body?: unknown; token?: string } = {}
+): Promise<{ status: number | null; datos: T | null }> => {
+  try {
+    const res = await fetch(`${process.env.WP_API_URL}${path}`, {
+      method: init.method ?? 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(init.token ? { Authorization: `Bearer ${init.token}` } : {}),
+      },
+      body: init.body === undefined ? undefined : JSON.stringify(init.body),
+      cache: 'no-store',
+    })
+    return { status: res.status, datos: (await res.json().catch(() => null)) as T | null }
+  } catch {
+    return { status: null, datos: null }
+  }
+}

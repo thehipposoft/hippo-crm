@@ -13,6 +13,7 @@ import { TEXTOS_SERVICIOS } from '@/lib/documentos/textosServicios'
 import { hoy } from '@/lib/fechas'
 import { proximosPagos } from '@/lib/portal/portal'
 import { obtenerEstadoPublico } from '@/lib/publico'
+import { EnlaceEmail } from '@/components/ui/EnlaceEmail'
 
 // En pantalla: vista interactiva por servicio. Al imprimir / PDF: el documento formal.
 export default async function EstadoPublicoPage({
@@ -87,7 +88,7 @@ export default async function EstadoPublicoPage({
           <HistorialPagos servicios={servicios} idioma={idioma} rutaRecibo={rutaRecibo} />
 
           <footer className="mt-14 border-t border-slate-200 pt-5 text-xs text-dark-text/50">
-            {td.consultas}: {EMPRESA.email} · {EMPRESA.web}
+            {td.consultas}: <EnlaceEmail /> · {EMPRESA.web}
           </footer>
         </main>
       </div>

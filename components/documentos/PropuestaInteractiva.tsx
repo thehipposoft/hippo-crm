@@ -12,6 +12,7 @@ import { IndicePropuesta, type EntradaIndice } from './IndicePropuesta'
 import { ItemDesplegable } from './ItemDesplegable'
 import { SeccionColapsable } from './SeccionColapsable'
 import { Markdown } from './Markdown'
+import { EnlaceEmail } from '@/components/ui/EnlaceEmail'
 
 const DIGITOS_SECCION = 2
 const ID_INICIO = 'inicio'
@@ -19,8 +20,9 @@ const ID_RESPUESTA = 'respuesta'
 
 interface PropuestaInteractivaProps {
   propuesta: PropuestaPublica
-  // Bloque de aceptar / rechazar (solo en el link público)
+  // Bloque de aceptar / rechazar (solo en el link público): al final y en el modal de "Responder"
   respuesta?: ReactNode
+  respuestaModal?: ReactNode
   // Extras de la cabecera (vista previa del CRM: volver, aviso de borrador)
   cabecera?: ReactNode
 }
@@ -108,7 +110,7 @@ const Item = ({ item, propuesta, idioma }: { item: PropuestaPublica['items'][num
 }
 
 // Versión en pantalla de la propuesta (link público y vista previa). Al imprimir se usa PropuestaDocumento.
-export const PropuestaInteractiva = ({ propuesta, respuesta, cabecera }: PropuestaInteractivaProps) => {
+export const PropuestaInteractiva = ({ propuesta, respuesta, respuestaModal, cabecera }: PropuestaInteractivaProps) => {
   const idioma: Idioma = propuesta.idioma
   const t = TEXTOS_PROPUESTA[idioma]
   const fecha = parseFecha(propuesta.fecha)
@@ -197,7 +199,11 @@ export const PropuestaInteractiva = ({ propuesta, respuesta, cabecera }: Propues
           entradas={entradas}
           etiquetaContenido={t.contenido}
           total={{ etiqueta: t.total, monto: totalTexto }}
-          responder={respuesta ? { id: ID_RESPUESTA, etiqueta: t.responder } : null}
+          responder={
+            respuesta
+              ? { id: ID_RESPUESTA, etiqueta: t.responder, etiquetaCerrar: t.cerrar, modal: respuestaModal ?? respuesta }
+              : null
+          }
         />
 
         <div className="mt-8 space-y-6 lg:mt-0 lg:space-y-16">
@@ -277,7 +283,7 @@ export const PropuestaInteractiva = ({ propuesta, respuesta, cabecera }: Propues
             <div className="flex items-center gap-3">
               <InsigniaH />
               <p>
-                {t.consultas}: {EMPRESA.email} · {EMPRESA.web}
+                {t.consultas}: <EnlaceEmail /> · {EMPRESA.web}
               </p>
             </div>
             <a href={`#${ID_INICIO}`} className="font-medium text-dark-text/60 hover:text-dark-text">

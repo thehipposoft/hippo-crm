@@ -2,6 +2,7 @@ import Image from 'next/image'
 import type { ReactNode } from 'react'
 import { EMPRESA } from '@/lib/empresa'
 import { TEXTOS, type Idioma } from '@/lib/documentos/idioma'
+import { EnlaceEmail } from '@/components/ui/EnlaceEmail'
 
 interface HojaDocumentoProps {
   idioma: Idioma
@@ -23,7 +24,7 @@ export const HojaDocumento = ({ idioma, titulo, datos, pie, children }: HojaDocu
           <div className="text-xs leading-relaxed text-dark-text/60">
             <p className="font-medium text-dark-text">{EMPRESA.nombre}</p>
             <p>{EMPRESA.web}</p>
-            <p>{EMPRESA.email}</p>
+            <p><EnlaceEmail /></p>
             {EMPRESA.identificacionFiscal && (
               <p>
                 {t.identificacion}: {EMPRESA.identificacionFiscal}
@@ -46,7 +47,7 @@ export const HojaDocumento = ({ idioma, titulo, datos, pie, children }: HojaDocu
       <footer className="border-t border-slate-200 pt-4 text-xs text-dark-text/50">
         {pie}
         <p className="mt-1">
-          {t.consultas}: {EMPRESA.email} · {EMPRESA.web}
+          {t.consultas}: <EnlaceEmail /> · {EMPRESA.web}
         </p>
       </footer>
     </article>

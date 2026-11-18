@@ -42,7 +42,11 @@ export default async function PropuestaPublicaPage({ params }: Props) {
   return (
     <>
       <div className="print:hidden">
-        <PropuestaInteractiva propuesta={propuesta} respuesta={respuesta} />
+        <PropuestaInteractiva
+          propuesta={propuesta}
+          respuesta={respuesta}
+          respuestaModal={<RespuestaPropuesta token={token} propuesta={propuesta} enModal />}
+        />
       </div>
       <div className="hidden print:block">
         <PropuestaDocumento propuesta={propuesta} respuesta={respondida ? respuesta : undefined} />

@@ -7,6 +7,7 @@ import { parseFecha } from '@/lib/fechas'
 import { numeroPropuesta, subtotalItem, totalesPropuesta } from '@/lib/propuestas'
 import type { PropuestaPublica } from '@/lib/types'
 import { Markdown } from './Markdown'
+import { EnlaceEmail } from '@/components/ui/EnlaceEmail'
 
 const DIGITOS_SECCION = 2
 
@@ -89,7 +90,7 @@ export const PropuestaDocumento = ({ propuesta, respuesta }: PropuestaDocumentoP
       <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-6 py-5 text-xs text-dark-text/50 sm:px-12 print:px-0">
         <Image src={EMPRESA.logo} alt={EMPRESA.nombre} width={64} height={16} />
         <p>
-          {t.consultas}: {EMPRESA.email} · {EMPRESA.web}
+          {t.consultas}: <EnlaceEmail /> · {EMPRESA.web}
         </p>
       </footer>
     </article>
@@ -169,7 +170,7 @@ const EncabezadoCotizacion = ({
           <div className="text-xs leading-relaxed text-dark-text/60">
             <p className="font-medium text-dark-text">{EMPRESA.nombre}</p>
             <p>{EMPRESA.web}</p>
-            <p>{EMPRESA.email}</p>
+            <p><EnlaceEmail /></p>
           </div>
         </div>
         <div className="sm:text-right">

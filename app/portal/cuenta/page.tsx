@@ -12,6 +12,7 @@ import { agruparPropuestas, proximosPagos } from '@/lib/portal/portal'
 import { obtenerEstadoPortal } from '@/lib/portal/sesion'
 import { TEXTOS_PORTAL } from '@/lib/portal/textos'
 import { numeroPropuesta, rutaPublicaPropuesta } from '@/lib/propuestas'
+import { EnlaceEmail } from '@/components/ui/EnlaceEmail'
 
 export default async function PortalCuentaPage() {
   const datos = await obtenerEstadoPortal()
@@ -150,7 +151,7 @@ export default async function PortalCuentaPage() {
         )}
 
         <footer className="mt-14 border-t border-slate-200 pt-5 text-xs text-dark-text/50">
-          {td.consultas}: {EMPRESA.email} · {EMPRESA.web}
+          {td.consultas}: <EnlaceEmail /> · {EMPRESA.web}
         </footer>
       </main>
     </div>

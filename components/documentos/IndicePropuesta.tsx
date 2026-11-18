@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { ModalRespuesta } from './ModalRespuesta'
 
 export type EntradaIndice = { id: string; numero: string | null; titulo: string }
 
@@ -8,8 +9,8 @@ interface IndicePropuestaProps {
   entradas: EntradaIndice[]
   etiquetaContenido: string
   total: { etiqueta: string; monto: string }
-  // Ancla del bloque de aceptar / rechazar (solo en el link público)
-  responder: { id: string; etiqueta: string } | null
+  // Bloque de aceptar / rechazar (solo en el link público): "Responder" lo abre en un modal
+  responder: { id: string; etiqueta: string; etiquetaCerrar: string; modal: ReactNode } | null
 }
 
 // Franja del viewport que define la sección "actual"
@@ -48,6 +49,7 @@ export const IndicePropuesta = ({ entradas, etiquetaContenido, total, responder 
   }, [activa])
 
   const enRespuesta = responder !== null && activa === responder.id
+  const [modalAbierto, setModalAbierto] = useState(false)
 
   return (
     <>
@@ -101,12 +103,14 @@ export const IndicePropuesta = ({ entradas, etiquetaContenido, total, responder 
             <p className="text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-white/60">{total.etiqueta}</p>
             <p className="mt-1 text-xl font-semibold tabular-nums">{total.monto}</p>
             {responder && (
-              <a
-                href={`#${responder.id}`}
-                className="mt-3 block rounded-lg bg-brand-green px-3 py-2 text-center text-sm font-semibold text-dark-text transition hover:brightness-95"
+              <button
+                type="button"
+                onClick={() => setModalAbierto(true)}
+                aria-haspopup="dialog"
+                className="mt-3 block w-full rounded-lg bg-brand-green px-3 py-2 text-center text-sm font-semibold text-dark-text transition hover:brightness-95"
               >
                 {responder.etiqueta}
-              </a>
+              </button>
             )}
           </div>
         </div>
@@ -124,11 +128,22 @@ export const IndicePropuesta = ({ entradas, etiquetaContenido, total, responder 
               <p className="text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-dark-text/50">{total.etiqueta}</p>
               <p className="font-semibold tabular-nums">{total.monto}</p>
             </div>
-            <a href={`#${responder.id}`} className="rounded-lg bg-dark-text px-5 py-2.5 text-sm font-semibold text-white">
+            <button
+              type="button"
+              onClick={() => setModalAbierto(true)}
+              aria-haspopup="dialog"
+              className="rounded-lg bg-dark-text px-5 py-2.5 text-sm font-semibold text-white"
+            >
               {responder.etiqueta}
-            </a>
+            </button>
           </div>
         </div>
+      )}
+
+      {responder && (
+        <ModalRespuesta abierto={modalAbierto} etiquetaCerrar={responder.etiquetaCerrar} onCerrar={() => setModalAbierto(false)}>
+          {responder.modal}
+        </ModalRespuesta>
       )}
     </>
   )

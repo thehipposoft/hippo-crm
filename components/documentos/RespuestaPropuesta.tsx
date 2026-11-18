@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useId, useState, useTransition } from 'react'
 import { responderPropuesta } from '@/app/propuesta/[token]/actions'
 import { fechaDoc } from '@/lib/documentos/idioma'
 import { TEXTOS_PROPUESTA } from '@/lib/documentos/textosPropuesta'
@@ -13,14 +13,22 @@ type Accion = 'ACEPTAR' | 'RECHAZAR'
 interface RespuestaPropuestaProps {
   token: string
   propuesta: PropuestaPublica
+  // Dentro del modal de "Responder": sin borde propio (el modal ya es la tarjeta)
+  enModal?: boolean
 }
 
 const CLASES_CONTROL =
   'w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-dark-text placeholder-dark-text/30 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-brand-blue'
 
 // Aceptar / rechazar desde el link. Una vez respondida queda el registro (también sale en el PDF).
-export const RespuestaPropuesta = ({ token, propuesta }: RespuestaPropuestaProps) => {
+// Se usa al final de la propuesta ("¿Avanzamos?") y en el modal que abre "Responder".
+export const RespuestaPropuesta = ({ token, propuesta, enModal = false }: RespuestaPropuestaProps) => {
   const t = TEXTOS_PROPUESTA[propuesta.idioma]
+  // Ids únicos: el bloque puede estar dos veces en la página (al final y en el modal)
+  const id = useId()
+  const idTitulo = `${id}-titulo`
+  const idNombre = `${id}-nombre`
+  const idComentario = `${id}-comentario`
   const [accion, setAccion] = useState<Accion | null>(null)
   const [nombre, setNombre] = useState('')
   const [comentario, setComentario] = useState('')
@@ -31,7 +39,7 @@ export const RespuestaPropuesta = ({ token, propuesta }: RespuestaPropuestaProps
 
   if (propuesta.estado === 'ACEPTADA') {
     return (
-      <Aviso tono="ok">
+      <Aviso tono="ok" enModal={enModal}>
         <p className="font-semibold">{t.aceptadaPor(propuesta.respuestaNombre, respondidaEl ?? '—')}</p>
         <p className="mt-0.5 print:hidden">{t.graciasAceptar}</p>
       </Aviso>
@@ -39,7 +47,7 @@ export const RespuestaPropuesta = ({ token, propuesta }: RespuestaPropuestaProps
   }
   if (propuesta.estado === 'RECHAZADA') {
     return (
-      <Aviso tono="neutro">
+      <Aviso tono="neutro" enModal={enModal}>
         <p className="font-semibold">{t.rechazadaEl(respondidaEl ?? '—')}</p>
         <p className="mt-0.5 print:hidden">{t.graciasRechazo}</p>
       </Aviso>
@@ -47,7 +55,7 @@ export const RespuestaPropuesta = ({ token, propuesta }: RespuestaPropuestaProps
   }
   if (propuesta.vencida) {
     return (
-      <Aviso tono="alerta">
+      <Aviso tono="alerta" enModal={enModal}>
         <p>{t.vencida(fechaDoc(propuesta.fechaVencimiento, propuesta.idioma))}</p>
       </Aviso>
     )
@@ -67,8 +75,11 @@ export const RespuestaPropuesta = ({ token, propuesta }: RespuestaPropuestaProps
   }
 
   return (
-    <section className="rounded-2xl border-2 border-dark-text p-6 sm:p-8 print:hidden" aria-labelledby="respuesta-titulo">
-      <h2 id="respuesta-titulo" className="font-display text-2xl font-semibold tracking-tight">
+    <section
+      className={enModal ? 'p-6 pr-14 sm:p-8 sm:pr-16' : 'rounded-2xl border-2 border-dark-text p-6 sm:p-8 print:hidden'}
+      aria-labelledby={idTitulo}
+    >
+      <h2 id={idTitulo} className="font-display text-2xl font-semibold tracking-tight">
         {t.tuRespuesta}
       </h2>
       <p className="mt-1 text-sm text-dark-text/60">{t.tuRespuestaAyuda}</p>
@@ -100,11 +111,11 @@ export const RespuestaPropuesta = ({ token, propuesta }: RespuestaPropuestaProps
         >
           {accion === 'ACEPTAR' && (
             <div>
-              <label htmlFor="respuesta-nombre" className="mb-1.5 block text-xs font-medium text-dark-text/60">
+              <label htmlFor={idNombre} className="mb-1.5 block text-xs font-medium text-dark-text/60">
                 {t.nombreCompleto} *
               </label>
               <input
-                id="respuesta-nombre"
+                id={idNombre}
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
                 required
@@ -116,11 +127,11 @@ export const RespuestaPropuesta = ({ token, propuesta }: RespuestaPropuestaProps
             </div>
           )}
           <div>
-            <label htmlFor="respuesta-comentario" className="mb-1.5 block text-xs font-medium text-dark-text/60">
+            <label htmlFor={idComentario} className="mb-1.5 block text-xs font-medium text-dark-text/60">
               {accion === 'ACEPTAR' ? t.comentario : t.motivoRechazo}
             </label>
             <textarea
-              id="respuesta-comentario"
+              id={idComentario}
               value={comentario}
               onChange={(e) => setComentario(e.target.value)}
               rows={3}
@@ -167,6 +178,8 @@ const TONOS = {
   alerta: 'border-brand-orange/40 bg-brand-orange/5 text-dark-text',
 } as const
 
-const Aviso = ({ tono, children }: { tono: keyof typeof TONOS; children: React.ReactNode }) => (
-  <section className={`break-inside-avoid rounded-2xl border p-5 text-sm ${TONOS[tono]}`}>{children}</section>
-)
+const Aviso = ({ tono, enModal, children }: { tono: keyof typeof TONOS; enModal: boolean; children: React.ReactNode }) => {
+  const aviso = <section className={`break-inside-avoid rounded-2xl border p-5 text-sm ${TONOS[tono]}`}>{children}</section>
+  // En el modal, aire alrededor y lugar para la cruz de cerrar
+  return enModal ? <div className="p-6 pt-16 sm:p-8 sm:pt-16">{aviso}</div> : aviso
+}

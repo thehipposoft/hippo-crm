@@ -43,7 +43,7 @@ Estructura, comandos y convenciones detalladas: ver `AGENTS.md`.
 - Tema claro con la paleta del manual de marca Hippo (`app/globals.css`): `dark-text` (Midnight
   Blue, color principal: textos, botones y sidebar), `brand-blue` (Digital Sky, acento: foco,
   ítem activo, detalles), `brand-green`, `brand-orange`, `brand-lavender`, `brand-plum`,
-  `brand-burgundy`, `brand-forest`, `brand-white` (fondo). Botón principal: `bg-dark-text text-white`
+  `brand-burgundy`, `brand-forest`, `brand-white` (fondo), `brand-olive` (sombra de etiquetas). Botón principal: `bg-dark-text text-white`
   (blanco sobre cian no tiene contraste). Modo oscuro: no implementado.
 - Tipografías: Inter (body / UI, `font-sans`), `font-display` para títulos (hoy Inter; cuando
   esté la NewBlack Typeface se cambia en `globals.css`) y EB Garamond (`font-editorial`, acentos).
@@ -186,6 +186,10 @@ Tipos en `lib/types.ts`. WordPress los guarda como custom post types.
   propuestas vinculadas y archivos (subir la propuesta en PDF, contratos, etc.)
 - Portal de clientes: varias personas por cliente invitadas por email, contraseña propia,
   saldo, próximos vencimientos, pagos con recibos, propuestas para responder, PDF del estado de cuenta
+- Estado de cuenta interactivo para el cliente: un colapsable por servicio (saldo, progreso, cuotas
+  pendientes, próxima cuota, pagos con recibos), filtros con saldo / al día; el PDF no cambia
+- Propuesta interactiva para el cliente: índice que sigue la lectura, secciones con etiquetas y
+  stickers de marca, ítems desplegables y "Responder" siempre a mano; el PDF no cambia
 - Nueva marca Hippo (2026): paleta, Inter, logo y documentos
 - Tareas del equipo: tablero por estado, responsables, prioridad, fecha límite, vínculo a proyectos
 - Dashboard "Hoy": por cobrar, cobrado y recurrentes del mes, deadlines, renovaciones,

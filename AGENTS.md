@@ -161,6 +161,16 @@ En local se trabaja contra los datos reales de producción: cuidado al crear, ed
 - Idioma: `?idioma=es|en`; si no viene, según el país del cliente (`idiomaPara`)
 - Montos en documentos con código de moneda (`montoDoc`): "USD 1.500,00", nunca "$"
 - Número de recibo = ID del pago en WordPress (`R-000123`)
+- Propuesta en pantalla (link `/propuesta/[token]` y vista previa `/documentos/propuesta/[id]`, solo tipo
+  PROPUESTA): `PropuestaInteractiva` (portada, índice con la sección actual en `IndicePropuesta`, ítems
+  desplegables, secciones plegables con `SeccionColapsable` (en mobile solo la primera abierta; ir a una
+  sección por el índice, "Siguiente" o un link con #id la abre), "Siguiente", total + "Responder" fijos en mobile). Al imprimir sale `PropuestaDocumento`.
+  Las cotizaciones siguen siendo solo el documento. Elementos de marca (etiqueta de sección con sombra
+  oliva, stickers "Let's make it simple." / "Shall we start?", insignia "H.") en `components/marca/Marca.tsx`
+- Estado de cuenta en pantalla (link `/estado/[token]` y portal): vista por servicio (`lib/documentos/servicios.ts`
+  → `ServiciosEstado`, colapsables con filtros; los que deben arrancan abiertos) + `ResumenEstado` y
+  `HistorialPagos` (`components/documentos/VistaEstado.tsx`). El PDF sigue siendo `EstadoDeCuentaDoc`:
+  en `/estado/[token]` está oculto en pantalla y es lo único que sale al imprimir
 - `/estado/[token]` es público (excepción en `proxy.ts`): nunca mostrar notas de pagos,
   acciones pendientes ni datos que no sean del cliente del token. WordPress ya los quita.
 - Datos del emisor (nombre, web, email, ID fiscal) en `lib/empresa.ts`

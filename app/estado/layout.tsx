@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 }
 
 export default function EstadoLayout({ children }: { children: React.ReactNode }) {
-  return <div className="min-h-dvh bg-brand-white py-6 print:bg-white print:py-0">{children}</div>
+  return <div className="min-h-dvh bg-brand-white print:bg-white">{children}</div>
 }

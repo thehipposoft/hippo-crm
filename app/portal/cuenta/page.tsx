@@ -1,48 +1,17 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import type { ReactNode } from 'react'
+import { ServiciosEstado } from '@/components/documentos/ServiciosEstado'
+import { HistorialPagos, ResumenEstado, SeccionEstado as Seccion } from '@/components/documentos/VistaEstado'
 import { armarEstadoDeCuenta } from '@/lib/documentos/estadoDeCuenta'
-import { fechaDoc, idiomaPara, medioDoc, montoDoc, numeroRecibo, TEXTOS, type Idioma } from '@/lib/documentos/idioma'
+import { armarServicios } from '@/lib/documentos/servicios'
+import { TEXTOS_SERVICIOS } from '@/lib/documentos/textosServicios'
+import { fechaDoc, idiomaPara, montoDoc, TEXTOS } from '@/lib/documentos/idioma'
 import { EMPRESA } from '@/lib/empresa'
 import { hoy } from '@/lib/fechas'
 import { agruparPropuestas, proximosPagos } from '@/lib/portal/portal'
 import { obtenerEstadoPortal } from '@/lib/portal/sesion'
 import { TEXTOS_PORTAL } from '@/lib/portal/textos'
 import { numeroPropuesta, rutaPublicaPropuesta } from '@/lib/propuestas'
-import type { Moneda } from '@/lib/types'
-
-const MAX_PAGOS = 24
-const TOLERANCIA = 0.005
-
-const Tarjeta = ({ titulo, children }: { titulo: string; children: ReactNode }) => (
-  <div className="rounded-2xl border border-slate-200 bg-white p-5">
-    <p className="text-xs font-medium uppercase tracking-[0.14em] text-dark-text/50">{titulo}</p>
-    <div className="mt-2">{children}</div>
-  </div>
-)
-
-const Seccion = ({ titulo, children, accion }: { titulo: string; children: ReactNode; accion?: ReactNode }) => (
-  <section className="mt-10">
-    <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
-      <h2 className="font-display text-lg font-semibold tracking-tight">{titulo}</h2>
-      {accion}
-    </div>
-    {children}
-  </section>
-)
-
-const SaldoMoneda = ({ moneda, saldo, idioma }: { moneda: Moneda; saldo: number; idioma: Idioma }) => {
-  const t = TEXTOS[idioma]
-  if (Math.abs(saldo) < TOLERANCIA) return <p className="text-2xl font-semibold text-brand-forest">{t.alDia}</p>
-  if (saldo < 0) {
-    return (
-      <p className="text-2xl font-semibold text-brand-forest">
-        {montoDoc(-saldo, moneda, idioma)} <span className="text-sm font-medium">{t.aFavor}</span>
-      </p>
-    )
-  }
-  return <p className="text-2xl font-semibold tabular-nums">{montoDoc(saldo, moneda, idioma)}</p>
-}
 
 export default async function PortalCuentaPage() {
   const datos = await obtenerEstadoPortal()
@@ -53,8 +22,8 @@ export default async function PortalCuentaPage() {
   const estado = armarEstadoDeCuenta(datos.proyectos, datos.pagos, fechaHoy)
   const proximos = proximosPagos(estado)
   const { pendientes, resto } = agruparPropuestas(datos.propuestas, fechaHoy)
-  const totales = Object.entries(estado.totales) as [Moneda, { saldo: number }][]
-  const proyectoDe = (id: number) => datos.proyectos.find((p) => Number(p.id) === Number(id))?.nombre ?? '—'
+  const servicios = armarServicios(estado)
+  const rutaRecibo = '/portal/cuenta/recibo/:id'
 
   return (
     <div className="pb-16">
@@ -93,30 +62,8 @@ export default async function PortalCuentaPage() {
           </Link>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Tarjeta titulo={t.saldoActual}>
-            {totales.length === 0 ? (
-              <p className="text-2xl font-semibold text-brand-forest">{td.alDia}</p>
-            ) : (
-              <div className="space-y-1">
-                {totales.map(([moneda, total]) => (
-                  <SaldoMoneda key={moneda} moneda={moneda} saldo={total.saldo} idioma={idioma} />
-                ))}
-              </div>
-            )}
-          </Tarjeta>
-          <Tarjeta titulo={t.proximoPago}>
-            {proximos[0] ? (
-              <>
-                <p className="text-2xl font-semibold tabular-nums">{montoDoc(proximos[0].monto, proximos[0].moneda, idioma)}</p>
-                <p className="mt-0.5 text-sm text-dark-text/60">
-                  {fechaDoc(proximos[0].fecha, idioma)} · {proximos[0].proyecto}
-                </p>
-              </>
-            ) : (
-              <p className="text-sm text-dark-text/50">{t.sinProximos}</p>
-            )}
-          </Tarjeta>
+        <div className="mt-8">
+          <ResumenEstado estado={estado} proximos={proximos} idioma={idioma} />
         </div>
 
         {pendientes.length > 0 && (
@@ -162,61 +109,11 @@ export default async function PortalCuentaPage() {
           </Seccion>
         )}
 
-        <Seccion titulo={td.proyectos}>
-          {estado.proyectos.length === 0 ? (
-            <p className="text-sm text-dark-text/50">{td.sinProyectos}</p>
-          ) : (
-            <div className="grid gap-3 sm:grid-cols-2">
-              {estado.proyectos.map(({ proyecto, resumen, saldo }) => (
-                <div key={proyecto.id} className="rounded-2xl border border-slate-200 bg-white p-5">
-                  <p className="font-semibold">{proyecto.nombre}</p>
-                  <dl className="mt-3 space-y-1 text-sm">
-                    <div className="flex justify-between gap-4">
-                      <dt className="text-dark-text/60">{td.totalALaFecha}</dt>
-                      <dd className="tabular-nums">{montoDoc(resumen.adeudado, resumen.moneda, idioma)}</dd>
-                    </div>
-                    <div className="flex justify-between gap-4">
-                      <dt className="text-dark-text/60">{td.pagado}</dt>
-                      <dd className="tabular-nums">{montoDoc(resumen.pagado, resumen.moneda, idioma)}</dd>
-                    </div>
-                    <div className="flex justify-between gap-4 border-t border-slate-100 pt-1 font-medium">
-                      <dt>{td.saldo}</dt>
-                      <dd className={`tabular-nums ${saldo.tipo === 'PENDIENTE' ? '' : 'text-brand-forest'}`}>
-                        {saldo.tipo === 'AL_DIA'
-                          ? td.alDia
-                          : saldo.tipo === 'A_FAVOR'
-                            ? `${montoDoc(saldo.monto, resumen.moneda, idioma)} ${td.aFavor}`
-                            : montoDoc(saldo.monto, resumen.moneda, idioma)}
-                      </dd>
-                    </div>
-                  </dl>
-                </div>
-              ))}
-            </div>
-          )}
+        <Seccion titulo={TEXTOS_SERVICIOS[idioma].servicios}>
+          <ServiciosEstado servicios={servicios} idioma={idioma} rutaRecibo={rutaRecibo} />
         </Seccion>
 
-        <Seccion titulo={t.pagos}>
-          {estado.movimientos.length === 0 ? (
-            <p className="text-sm text-dark-text/50">{td.sinMovimientos}</p>
-          ) : (
-            <ul className="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white">
-              {estado.movimientos.slice(0, MAX_PAGOS).map((pago) => (
-                <li key={pago.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3 text-sm">
-                  <div className="min-w-0">
-                    <p className="font-medium tabular-nums">{montoDoc(pago.monto, pago.moneda, idioma)}</p>
-                    <p className="text-xs text-dark-text/50">
-                      {[fechaDoc(pago.fecha, idioma), proyectoDe(pago.proyectoId), pago.medioPago && medioDoc(pago.medioPago, idioma)].filter(Boolean).join(' · ')}
-                    </p>
-                  </div>
-                  <Link href={`/portal/cuenta/recibo/${pago.id}`} className="text-xs font-medium text-dark-text underline decoration-brand-blue decoration-2 underline-offset-2">
-                    {t.recibo} {numeroRecibo(pago.id)}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Seccion>
+        <HistorialPagos servicios={servicios} idioma={idioma} rutaRecibo={rutaRecibo} />
 
         {resto.length > 0 && (
           <Seccion titulo={t.propuestas}>

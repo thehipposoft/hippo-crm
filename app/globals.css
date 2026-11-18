@@ -11,6 +11,7 @@
   --brand-burgundy: #4E0119;  /* Burgundy */
   --brand-forest: #1C4E3D;    /* Forest green */
   --brand-white: #F7F7F1;
+  --brand-olive: #9BA540;     /* Sombra de las etiquetas de sección */
 }
 
 @theme inline {
@@ -22,6 +23,7 @@
   --color-brand-burgundy: var(--brand-burgundy);
   --color-brand-forest: var(--brand-forest);
   --color-brand-white: var(--brand-white);
+  --color-brand-olive: var(--brand-olive);
   --color-dark-text: var(--dark-text);
   /* Body / UI: Inter. Títulos: NewBlack Typeface cuando esté (por ahora Inter). Acentos editoriales: EB Garamond */
   --font-sans: var(--font-inter);
@@ -45,5 +47,36 @@ body {
     background: white;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+  }
+}
+
+/* Propuesta interactiva: scroll suave entre secciones (salvo movimiento reducido) */
+html:has(.propuesta-interactiva) {
+  scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) {
+  html:has(.propuesta-interactiva) {
+    scroll-behavior: auto;
+  }
+}
+
+/* Barra de progreso de lectura (sin JS; donde no hay soporte no se muestra) */
+.progreso-lectura {
+  display: none;
+}
+@supports (animation-timeline: scroll()) {
+  .progreso-lectura {
+    display: block;
+    transform-origin: left;
+    animation: progreso-lectura linear both;
+    animation-timeline: scroll(root);
+  }
+}
+@keyframes progreso-lectura {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
   }
 }

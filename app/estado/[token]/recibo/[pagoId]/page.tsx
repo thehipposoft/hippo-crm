@@ -21,9 +21,9 @@ export default async function ReciboPublicoPage({
   const idioma = idiomaPara(datos.cliente.pais, pedido)
 
   return (
-    <>
+    <div className="py-6 print:py-0">
       <BarraDocumento idioma={idioma} volverHref={`/estado/${token}?idioma=${idioma}`} />
       <Recibo pago={pago} proyecto={proyecto} cliente={datos.cliente} idioma={idioma} />
-    </>
+    </div>
   )
 }

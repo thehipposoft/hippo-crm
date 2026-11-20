@@ -78,7 +78,7 @@ export default async function EstadoPublicoPage({
           </div>
 
           <div className="mt-8">
-            <ResumenEstado estado={estado} proximos={proximosPagos(estado)} idioma={idioma} />
+            <ResumenEstado estado={estado} servicios={servicios} proximos={proximosPagos(estado)} idioma={idioma} />
           </div>
 
           <SeccionEstado titulo={t.servicios}>

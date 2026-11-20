@@ -139,3 +139,17 @@ export const filtrarServicios = (servicios: Servicio[], filtro: FiltroServicios)
   filtro === 'TODOS'
     ? servicios
     : servicios.filter((s) => (filtro === 'CON_SALDO' ? s.saldo.tipo === 'PENDIENTE' : s.saldo.tipo !== 'PENDIENTE'))
+
+// Detalle del saldo pendiente por moneda: lo que debe cada servicio y, en negativo, lo que tiene
+// a favor (el total ya lo descuenta, así la suma del detalle coincide con el saldo)
+export type DetalleSaldo = { moneda: Moneda; items: { id: number; nombre: string; monto: number }[] }
+
+export const detalleSaldo = (servicios: Servicio[]): DetalleSaldo[] => {
+  const grupos = new Map<Moneda, DetalleSaldo['items']>()
+  for (const s of servicios) {
+    if (s.saldo.tipo === 'AL_DIA') continue
+    const monto = s.saldo.tipo === 'PENDIENTE' ? s.saldo.monto : -s.saldo.monto
+    grupos.set(s.moneda, [...(grupos.get(s.moneda) ?? []), { id: s.id, nombre: s.nombre, monto }])
+  }
+  return [...grupos.entries()].map(([moneda, items]) => ({ moneda, items }))
+}

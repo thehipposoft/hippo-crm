@@ -21,6 +21,15 @@ export const proximosPagos = (estado: Pick<EstadoDeCuenta, 'proximos'>): Proximo
     }))
     .sort((a, b) => a.fecha.anio - b.fecha.anio || a.fecha.mes - b.fecha.mes || a.fecha.dia - b.fecha.dia)
 
+// Próxima cuota de cada servicio, sumadas por moneda (nunca se mezclan monedas)
+export type ProximosPorMoneda = { moneda: Moneda; total: number; pagos: ProximoPago[] }
+
+export const proximosPorMoneda = (proximos: ProximoPago[]): ProximosPorMoneda[] => {
+  const grupos = new Map<Moneda, ProximoPago[]>()
+  for (const p of proximos) grupos.set(p.moneda, [...(grupos.get(p.moneda) ?? []), p])
+  return [...grupos.entries()].map(([moneda, pagos]) => ({ moneda, total: pagos.reduce((suma, p) => suma + p.monto, 0), pagos }))
+}
+
 export type GrupoPropuestas = {
   // Esperando respuesta y vigentes: lo primero que ve el cliente
   pendientes: (PropuestaPortal & { total: number })[]

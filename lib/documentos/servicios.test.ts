@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { fecha, pago, porCasilla, propuesta, proyecto, recurrente, unidad } from '@/lib/test-utils'
 import { armarEstadoDeCuenta } from './estadoDeCuenta'
-import { aprobacionDe, armarServicios, filtrarServicios } from './servicios'
+import { aprobacionDe, armarServicios, detalleSaldo, filtrarServicios } from './servicios'
 
 const HOY = fecha(2026, 11, 17)
 
@@ -112,5 +112,28 @@ describe('aprobacionDe', () => {
       armarEstadoDeCuenta([proyecto({ id: 5, valor: 100, propuestaAprobada: '2026-10-28', propuestaAprobadaPor: 'Martín' })], [], HOY)
     )
     expect(s.aprobacion).toMatchObject({ aprobada: '2026-10-28', aprobadaPor: 'Martín' })
+  })
+})
+
+describe('detalleSaldo', () => {
+  it('deudas por servicio y, en negativo, lo que está a favor: la suma da el saldo total', () => {
+    const estado = armarEstadoDeCuenta(
+      [
+        proyecto({ id: 1, nombre: 'Sitio', valor: 1000 }),
+        proyecto({ id: 2, nombre: 'Logo', valor: 100 }),
+        proyecto({ id: 3, nombre: 'Al día', valor: 50 }),
+        proyecto({ id: 4, nombre: 'Redes', valor: 9000, moneda: 'ARS' }),
+      ],
+      [pago({ id: 1, proyectoId: 1, monto: 400 }), pago({ id: 2, proyectoId: 2, monto: 150 }), pago({ id: 3, proyectoId: 3, monto: 50 })],
+      HOY
+    )
+    const detalle = detalleSaldo(armarServicios(estado))
+    const usd = detalle.find((d) => d.moneda === 'USD')
+    expect(usd?.items).toEqual([
+      { id: 1, nombre: 'Sitio', monto: 600 },
+      { id: 2, nombre: 'Logo', monto: -50 },
+    ])
+    expect(usd?.items.reduce((s, i) => s + i.monto, 0)).toBeCloseTo(estado.totales.USD?.saldo ?? 0)
+    expect(detalle.find((d) => d.moneda === 'ARS')?.items).toEqual([{ id: 4, nombre: 'Redes', monto: 9000 }])
   })
 })

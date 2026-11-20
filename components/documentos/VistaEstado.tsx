@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react'
 import { fechaDoc, montoDoc, TEXTOS, type Idioma } from '@/lib/documentos/idioma'
 import type { EstadoDeCuenta, TotalMoneda } from '@/lib/documentos/estadoDeCuenta'
-import type { Servicio } from '@/lib/documentos/servicios'
+import { detalleSaldo, type Servicio } from '@/lib/documentos/servicios'
 import { TEXTOS_SERVICIOS } from '@/lib/documentos/textosServicios'
-import type { ProximoPago } from '@/lib/portal/portal'
+import { proximosPorMoneda, type ProximoPago } from '@/lib/portal/portal'
 import type { Moneda } from '@/lib/types'
 import { ListaPagos } from './ServiciosEstado'
 
@@ -29,7 +29,6 @@ export const SeccionEstado = ({ titulo, children, accion }: { titulo: string; ch
 )
 
 const SaldoMoneda = ({ moneda, total, idioma }: { moneda: Moneda; total: TotalMoneda; idioma: Idioma }) => {
-  const t = TEXTOS_SERVICIOS[idioma]
   const td = TEXTOS[idioma]
   if (total.saldo < TOLERANCIA) {
     return (
@@ -44,20 +43,28 @@ const SaldoMoneda = ({ moneda, total, idioma }: { moneda: Moneda; total: TotalMo
       </p>
     )
   }
-  return (
-    <div>
-      <p className="text-2xl font-semibold tabular-nums">{montoDoc(total.saldo, moneda, idioma)}</p>
-      <p className="text-xs text-dark-text/50 tabular-nums">{t.pagadoDe(montoDoc(total.pagado, moneda, idioma), montoDoc(total.adeudado, moneda, idioma))}</p>
-    </div>
-  )
+  return <p className="text-2xl font-semibold tabular-nums">{montoDoc(total.saldo, moneda, idioma)}</p>
 }
 
-// Saldo de cada moneda con deuda (nunca se suman monedas) y próximo pago
-export const ResumenEstado = ({ estado, proximos, idioma }: { estado: EstadoDeCuenta; proximos: ProximoPago[]; idioma: Idioma }) => {
+// Saldo de cada moneda con deuda (con el detalle por servicio) y la próxima cuota de cada servicio
+// recurrente (nunca se suman monedas)
+export const ResumenEstado = ({
+  estado,
+  servicios,
+  proximos,
+  idioma,
+}: {
+  estado: EstadoDeCuenta
+  servicios: Servicio[]
+  proximos: ProximoPago[]
+  idioma: Idioma
+}) => {
   const t = TEXTOS_SERVICIOS[idioma]
   const totales = Object.entries(estado.totales) as [Moneda, TotalMoneda][]
   const conDeuda = totales.filter(([, total]) => total.saldo >= TOLERANCIA)
-  const proximo = proximos[0]
+  const detalle = detalleSaldo(servicios)
+  // La próxima cuota de cada servicio, sumadas por moneda
+  const grupos = proximosPorMoneda(proximos)
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -68,23 +75,56 @@ export const ResumenEstado = ({ estado, proximos, idioma }: { estado: EstadoDeCu
         </Tarjeta>
       ) : (
         <Tarjeta titulo={t.saldoPendiente}>
-          <div className="space-y-2">
-            {conDeuda.map(([moneda, total]) => (
-              <SaldoMoneda key={moneda} moneda={moneda} total={total} idioma={idioma} />
-            ))}
+          <div className="space-y-3">
+            {conDeuda.map(([moneda, total]) => {
+              const items = detalle.find((d) => d.moneda === moneda)?.items ?? []
+              return (
+                <div key={moneda}>
+                  <SaldoMoneda moneda={moneda} total={total} idioma={idioma} />
+                  {items.length > 0 && (
+                    <ul className="mt-2 space-y-1.5 text-sm">
+                      {items.map((item) => (
+                        <li key={item.id} className="flex items-start justify-between gap-3">
+                          <span className="min-w-0 text-dark-text/80">{item.nombre}</span>
+                          {items.length > 1 && (
+                            <span className={`whitespace-nowrap tabular-nums ${item.monto < 0 ? 'text-brand-forest' : 'text-dark-text/60'}`}>
+                              {item.monto < 0
+                                ? `−${montoDoc(-item.monto, moneda, idioma)} ${TEXTOS[idioma].aFavor}`
+                                : montoDoc(item.monto, moneda, idioma)}
+                            </span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )
+            })}
           </div>
         </Tarjeta>
       )}
-      <Tarjeta titulo={t.proximoPago}>
-        {proximo ? (
-          <>
-            <p className="text-2xl font-semibold tabular-nums">{montoDoc(proximo.monto, proximo.moneda, idioma)}</p>
-            <p className="mt-0.5 text-sm text-dark-text/60">
-              {fechaDoc(proximo.fecha, idioma)} · {proximo.proyecto}
-            </p>
-          </>
-        ) : (
+      <Tarjeta titulo={proximos.length > 1 ? t.proximosPagos : t.proximoPago}>
+        {grupos.length === 0 ? (
           <p className="text-sm text-dark-text/50">{t.sinProximos}</p>
+        ) : (
+          <div className="space-y-3">
+            {grupos.map((grupo) => (
+              <div key={grupo.moneda}>
+                <p className="text-2xl font-semibold tabular-nums">{montoDoc(grupo.total, grupo.moneda, idioma)}</p>
+                <ul className="mt-2 space-y-2 text-sm">
+                  {grupo.pagos.map((p) => (
+                    <li key={p.proyectoId} className="flex items-start justify-between gap-3">
+                      <span className="min-w-0">
+                        <span className="block text-dark-text/80">{p.proyecto}</span>
+                        <span className="block text-xs text-dark-text/50">{fechaDoc(p.fecha, idioma)}</span>
+                      </span>
+                      {grupo.pagos.length > 1 && <span className="whitespace-nowrap tabular-nums text-dark-text/60">{montoDoc(p.monto, p.moneda, idioma)}</span>}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
         )}
       </Tarjeta>
     </div>

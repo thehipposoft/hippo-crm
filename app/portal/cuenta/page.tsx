@@ -64,7 +64,7 @@ export default async function PortalCuentaPage() {
         </div>
 
         <div className="mt-8">
-          <ResumenEstado estado={estado} proximos={proximos} idioma={idioma} />
+          <ResumenEstado estado={estado} servicios={servicios} proximos={proximos} idioma={idioma} />
         </div>
 
         {pendientes.length > 0 && (

@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { armarEstadoDeCuenta } from '@/lib/documentos/estadoDeCuenta'
 import { fecha, proyecto, recurrente, unidad } from '@/lib/test-utils'
-import type { PropuestaPortal } from '@/lib/types'
-import { agruparPropuestas, proximosPagos } from './portal'
+import type { Moneda, PropuestaPortal } from '@/lib/types'
+import { agruparPropuestas, proximosPagos, proximosPorMoneda, type ProximoPago } from './portal'
 
 const HOY = fecha(2026, 11, 4)
 
@@ -60,5 +60,33 @@ describe('agruparPropuestas', () => {
       [3, true],
       [2, false],
     ])
+  })
+})
+
+describe('proximosPorMoneda', () => {
+  const p = (proyecto: string, monto: number, moneda: Moneda, dia: number): ProximoPago => ({
+    proyectoId: dia,
+    proyecto,
+    fecha: fecha(2026, 12, dia),
+    monto,
+    moneda,
+  })
+
+  it('suma la próxima cuota de cada servicio en la misma moneda', () => {
+    const [usd] = proximosPorMoneda([p('Hosting', 50, 'USD', 1), p('Emails', 31.54, 'USD', 8)])
+    expect(usd.total).toBeCloseTo(81.54)
+    expect(usd.pagos.map((x) => x.proyecto)).toEqual(['Hosting', 'Emails'])
+  })
+
+  it('no mezcla monedas', () => {
+    const grupos = proximosPorMoneda([p('Hosting', 50, 'USD', 1), p('Redes', 150000, 'ARS', 3), p('Emails', 10, 'USD', 8)])
+    expect(grupos.map((g) => [g.moneda, g.total])).toEqual([
+      ['USD', 60],
+      ['ARS', 150000],
+    ])
+  })
+
+  it('sin cuotas: vacío', () => {
+    expect(proximosPorMoneda([])).toEqual([])
   })
 })

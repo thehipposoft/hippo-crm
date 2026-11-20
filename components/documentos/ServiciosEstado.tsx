@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { fechaDoc, medioDoc, mesDoc, montoDoc, numeroRecibo, TEXTOS, unidadDoc, type Idioma } from '@/lib/documentos/idioma'
-import { filtrarServicios, type FiltroServicios, type PagoServicio, type Servicio } from '@/lib/documentos/servicios'
+import { filtrarServicios, type AprobacionServicio, type FiltroServicios, type PagoServicio, type Servicio } from '@/lib/documentos/servicios'
 import { TEXTOS_SERVICIOS } from '@/lib/documentos/textosServicios'
 import type { Moneda } from '@/lib/types'
 
@@ -100,6 +100,56 @@ const Dato = ({ etiqueta, children, destacado }: { etiqueta: string; children: R
   </div>
 )
 
+// Colapsable con la propuesta del servicio: envío, aprobación y quién aprobó
+const SeccionAprobacion = ({ aprobacion: a, idioma }: { aprobacion: AprobacionServicio; idioma: Idioma }) => {
+  const t = TEXTOS_SERVICIOS[idioma]
+  const filas: [string, string][] = [
+    ...(a.enviada ? [[t.propuestaEnviada, fechaDoc(a.enviada, idioma)] as [string, string]] : []),
+    [t.aprobada, a.aprobada ? fechaDoc(a.aprobada, idioma) : t.pendienteAprobacion],
+    ...(a.aprobadaPor ? [[t.aprobadaPor, a.aprobadaPor] as [string, string]] : []),
+    ...(a.medio ? [[t.medio, t.medios[a.medio]] as [string, string]] : a.enLink ? [[t.medio, t.enLink] as [string, string]] : []),
+  ]
+  return (
+    <details className="group/aprobacion rounded-xl border border-slate-100">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2.5 text-sm font-medium [&::-webkit-details-marker]:hidden">
+        {t.propuestaYAprobacion}
+        <span className="flex items-center gap-2">
+          <span
+            className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+              a.aprobada ? 'bg-brand-forest/10 text-brand-forest' : 'bg-slate-100 text-dark-text/60'
+            }`}
+          >
+            {a.aprobada ? t.aprobada : t.pendienteAprobacion}
+          </span>
+          <svg className="h-4 w-4 text-dark-text/40 transition-transform group-open/aprobacion:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </span>
+      </summary>
+      <dl className="divide-y divide-slate-50 border-t border-slate-100 text-sm">
+        {filas.map(([etiqueta, valor]) => (
+          <div key={etiqueta} className="flex justify-between gap-4 px-3 py-2">
+            <dt className="text-dark-text/50">{etiqueta}</dt>
+            <dd className="text-right font-medium">{valor}</dd>
+          </div>
+        ))}
+      </dl>
+      {a.propuesta?.token && (
+        <div className="border-t border-slate-100 px-3 py-2.5">
+          <a
+            href={`/propuesta/${a.propuesta.token}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs font-medium text-dark-text underline decoration-brand-blue decoration-2 underline-offset-2"
+          >
+            {t.verPropuesta} {a.propuesta.numero} · {a.propuesta.titulo}
+          </a>
+        </div>
+      )}
+    </details>
+  )
+}
+
 const TarjetaServicio = ({ servicio: s, idioma, rutaRecibo }: { servicio: Servicio; idioma: Idioma; rutaRecibo: string }) => {
   const t = TEXTOS_SERVICIOS[idioma]
   const td = TEXTOS[idioma]
@@ -157,6 +207,8 @@ const TarjetaServicio = ({ servicio: s, idioma, rutaRecibo }: { servicio: Servic
             {t.otraMoneda} {otras.map(([moneda, monto]) => montoDoc(monto, moneda, idioma)).join(' · ')}
           </p>
         )}
+
+        {s.aprobacion && <SeccionAprobacion aprobacion={s.aprobacion} idioma={idioma} />}
 
         {s.meses && s.meses.length > 0 && (
           <details className="group/meses rounded-xl border border-slate-100">

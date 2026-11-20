@@ -5,7 +5,7 @@ import { unstable_rethrow } from 'next/navigation'
 import { z } from 'zod'
 import { enviarAWp } from '@/lib/acciones'
 import { getToken } from '@/lib/auth'
-import { ESTADO_VALUES, TIPO_ARCHIVO_VALUES } from '@/lib/types'
+import { ESTADO_VALUES, MEDIO_APROBACION_VALUES, TIPO_ARCHIVO_VALUES } from '@/lib/types'
 import { wpFetch } from '@/lib/wp'
 
 const estadoSchema = z.enum(ESTADO_VALUES)
@@ -33,16 +33,39 @@ const refrescarFicha = (id: number) => {
   revalidatePath('/proyectos')
 }
 
-// Registro manual (propuestas hechas fuera del CRM). Vacío = se borra y vuelve a tomarse del CRM.
-export async function guardarFechasPropuesta(id: number, enviada: string, aprobada: string): Promise<{ error: string | null }> {
-  if (!fechaOVacio.safeParse(enviada).success || !fechaOVacio.safeParse(aprobada).success) return { error: 'Fecha inválida.' }
-  if (enviada && aprobada && aprobada < enviada) return { error: 'La aprobación no puede ser anterior al envío.' }
+const MAX_APROBADA_POR = 120
+const MAX_NOTAS = 2000
+
+const registroSchema = z
+  .object({
+    enviada: fechaOVacio,
+    aprobada: fechaOVacio,
+    aprobadaPor: z.string().trim().max(MAX_APROBADA_POR, `Máximo ${MAX_APROBADA_POR} caracteres.`),
+    medio: z.union([z.literal(''), z.enum(MEDIO_APROBACION_VALUES)]),
+    notas: z.string().trim().max(MAX_NOTAS, `Las notas pueden tener hasta ${MAX_NOTAS} caracteres.`),
+  })
+  .refine((r) => !r.enviada || !r.aprobada || r.aprobada >= r.enviada, 'La aprobación no puede ser anterior al envío.')
+
+export type RegistroPropuesta = z.input<typeof registroSchema>
+
+// Registro manual (propuestas hechas fuera del CRM): fechas y notas de quién aprobó y por qué medio.
+// Vacío = se borra (las fechas vuelven a tomarse del CRM).
+export async function guardarRegistroPropuesta(id: number, registro: RegistroPropuesta): Promise<{ error: string | null }> {
+  const validacion = registroSchema.safeParse(registro)
+  if (!validacion.success) return { error: validacion.error.issues[0]?.message ?? 'Datos inválidos.' }
+  const r = validacion.data
 
   const error = await enviarAWp(
     `/proyectos/${id}`,
     'PUT',
-    { propuesta_enviada: enviada || null, propuesta_aprobada: aprobada || null },
-    'No se pudieron guardar las fechas.'
+    {
+      propuesta_enviada: r.enviada || null,
+      propuesta_aprobada: r.aprobada || null,
+      propuesta_aprobada_por: r.aprobadaPor || null,
+      propuesta_medio: r.medio || null,
+      propuesta_notas: r.notas || null,
+    },
+    'No se pudo guardar el registro de la propuesta.'
   )
   if (error) return { error: error.error }
   refrescarFicha(id)

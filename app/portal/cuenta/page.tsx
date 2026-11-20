@@ -23,7 +23,7 @@ export default async function PortalCuentaPage() {
   const estado = armarEstadoDeCuenta(datos.proyectos, datos.pagos, fechaHoy)
   const proximos = proximosPagos(estado)
   const { pendientes, resto } = agruparPropuestas(datos.propuestas, fechaHoy)
-  const servicios = armarServicios(estado)
+  const servicios = armarServicios(estado, datos.propuestasProyectos)
   const rutaRecibo = '/portal/cuenta/recibo/:id'
 
   return (

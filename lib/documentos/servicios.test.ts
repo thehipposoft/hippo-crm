@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { fecha, pago, porCasilla, proyecto, recurrente, unidad } from '@/lib/test-utils'
+import { fecha, pago, porCasilla, propuesta, proyecto, recurrente, unidad } from '@/lib/test-utils'
 import { armarEstadoDeCuenta } from './estadoDeCuenta'
-import { armarServicios, filtrarServicios } from './servicios'
+import { aprobacionDe, armarServicios, filtrarServicios } from './servicios'
 
 const HOY = fecha(2026, 11, 17)
 
@@ -76,5 +76,41 @@ describe('filtrarServicios', () => {
     expect(filtrarServicios(lista, 'CON_SALDO').map((s) => s.id)).toEqual([2])
     expect(filtrarServicios(lista, 'AL_DIA').map((s) => s.id)).toEqual([1])
     expect(filtrarServicios(lista, 'TODOS')).toHaveLength(2)
+  })
+})
+
+describe('aprobacionDe', () => {
+  const base = { id: 5, propuestaEnviada: null, propuestaAprobada: null, propuestaAprobadaPor: null, propuestaMedio: null }
+
+  it('sin propuesta ni registro: nada que mostrar', () => {
+    expect(aprobacionDe(base, [])).toBeNull()
+  })
+
+  it('propuesta hecha fuera del CRM: fechas, quién y medio del registro manual', () => {
+    const r = aprobacionDe({ ...base, propuestaEnviada: '2026-10-20', propuestaAprobada: '2026-10-28', propuestaAprobadaPor: 'Martín Sima', propuestaMedio: 'WHATSAPP' }, [])
+    expect(r).toEqual({ enviada: '2026-10-20', aprobada: '2026-10-28', aprobadaPor: 'Martín Sima', medio: 'WHATSAPP', enLink: false, propuesta: null })
+  })
+
+  it('aceptada en el link: firma y propuesta del CRM, sin medio manual', () => {
+    const p = propuesta({ id: 104, tipo: 'PROPUESTA', titulo: 'Sitio', proyectoId: 5, estado: 'ACEPTADA', token: 't', respuestaNombre: 'Ana López', enviadaEl: '2026-10-20T15:00:00Z', respondidaEl: '2026-10-28T15:00:00Z' })
+    const r = aprobacionDe({ ...base, propuestaMedio: 'EMAIL' }, [p])
+    expect(r).toEqual({ enviada: '2026-10-20', aprobada: '2026-10-28', aprobadaPor: 'Ana López', medio: null, enLink: true, propuesta: { numero: 'P-000104', titulo: 'Sitio', token: 't' } })
+  })
+
+  it('marcada aceptada a mano en el CRM: sin firma', () => {
+    const p = propuesta({ proyectoId: 5, estado: 'ACEPTADA', respuestaNombre: null, enviadaEl: '2026-10-20T15:00:00Z', respondidaEl: '2026-10-28T15:00:00Z' })
+    expect(aprobacionDe(base, [p])).toMatchObject({ aprobadaPor: null, enLink: false })
+  })
+
+  it('enviada y todavía sin respuesta: solo la fecha de envío y el link', () => {
+    const p = propuesta({ id: 7, proyectoId: 5, estado: 'ENVIADA', token: 'x', enviadaEl: '2026-11-01T15:00:00Z' })
+    expect(aprobacionDe(base, [p])).toMatchObject({ enviada: '2026-11-01', aprobada: null, propuesta: { token: 'x' } })
+  })
+
+  it('armarServicios la incluye por proyecto', () => {
+    const [s] = armarServicios(
+      armarEstadoDeCuenta([proyecto({ id: 5, valor: 100, propuestaAprobada: '2026-10-28', propuestaAprobadaPor: 'Martín' })], [], HOY)
+    )
+    expect(s.aprobacion).toMatchObject({ aprobada: '2026-10-28', aprobadaPor: 'Martín' })
   })
 })

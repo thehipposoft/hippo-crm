@@ -32,7 +32,7 @@ export default async function EstadoPublicoPage({
   const t = TEXTOS_SERVICIOS[idioma]
   const td = TEXTOS[idioma]
   const estado = armarEstadoDeCuenta(datos.proyectos, datos.pagos, fechaHoy)
-  const servicios = armarServicios(estado)
+  const servicios = armarServicios(estado, datos.propuestasProyectos)
   const rutaRecibo = `/estado/${token}/recibo/:id?idioma=${idioma}`
 
   return (

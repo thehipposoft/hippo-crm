@@ -1,6 +1,8 @@
 import type { FechaCalendario } from '@/lib/fechas'
+import { resumenPropuestaProyecto } from '@/lib/propuestaProyecto'
+import { numeroPropuesta } from '@/lib/propuestas'
 import type { Saldo } from '@/lib/proyectos'
-import type { FrecuenciaPago, Moneda } from '@/lib/types'
+import type { FrecuenciaPago, MedioAprobacion, Moneda, PropuestaProyectoPublica, ProyectoRow } from '@/lib/types'
 import type { MesUnidades } from '@/lib/unidades'
 import type { EstadoDeCuenta } from './estadoDeCuenta'
 
@@ -11,6 +13,19 @@ export type TipoServicio = 'UNICO' | 'RECURRENTE' | 'POR_UNIDAD'
 
 // Solo lo que ve el cliente de cada pago (nunca las notas)
 export type PagoServicio = { id: number; fecha: string | null; monto: number; moneda: Moneda; medioPago: string | null }
+
+// Propuesta del servicio: cuándo se envió y aprobó, y quién la aprobó (fechas 'YYYY-MM-DD')
+export type AprobacionServicio = {
+  enviada: string | null
+  aprobada: string | null
+  aprobadaPor: string | null
+  // Solo en propuestas hechas fuera del CRM
+  medio: MedioAprobacion | null
+  // La aceptó con su nombre en el link de la propuesta
+  enLink: boolean
+  // Propuesta del CRM (para el link "Ver propuesta")
+  propuesta: { numero: string; titulo: string; token: string | null } | null
+}
 
 export type Servicio = {
   id: number
@@ -35,6 +50,7 @@ export type Servicio = {
   otrasMonedas: Partial<Record<Moneda, number>>
   meses: MesUnidades[] | null
   activas: string[] | null
+  aprobacion: AprobacionServicio | null
 }
 
 // Diferencias de redondeo al dividir la deuda por la cuota
@@ -46,7 +62,29 @@ const progresoDe = (pagado: number, adeudado: number): number =>
 const ORDEN_SALDO: Record<Saldo['tipo'], number> = { PENDIENTE: 0, A_FAVOR: 1, AL_DIA: 2 }
 
 // Con deuda primero (la más grande arriba), después a favor y al día; los finalizados al final
-export const armarServicios = (estado: EstadoDeCuenta): Servicio[] => {
+// Mismo criterio que la ficha del proyecto: manda el registro manual; si no, las propuestas del CRM
+export const aprobacionDe = (
+  proyecto: Pick<ProyectoRow, 'id' | 'propuestaEnviada' | 'propuestaAprobada' | 'propuestaAprobadaPor' | 'propuestaMedio'>,
+  propuestas: PropuestaProyectoPublica[]
+): AprobacionServicio | null => {
+  const { enviada, aprobada } = resumenPropuestaProyecto(proyecto, propuestas)
+  const aprobadaEnCrm = aprobada?.origen.tipo === 'CRM' ? aprobada.origen.propuesta : null
+  const delCrm = aprobadaEnCrm ?? (enviada?.origen.tipo === 'CRM' ? enviada.origen.propuesta : null)
+  const aprobadaPor = aprobadaEnCrm ? aprobadaEnCrm.respuestaNombre : (proyecto.propuestaAprobadaPor ?? null)
+  const medio = aprobadaEnCrm ? null : (proyecto.propuestaMedio ?? null)
+  if (!enviada && !aprobada && !aprobadaPor && !medio) return null
+
+  return {
+    enviada: enviada?.fecha ?? null,
+    aprobada: aprobada?.fecha ?? null,
+    aprobadaPor,
+    medio,
+    enLink: aprobadaEnCrm?.respuestaNombre != null,
+    propuesta: delCrm ? { numero: numeroPropuesta(delCrm), titulo: delCrm.titulo, token: delCrm.token } : null,
+  }
+}
+
+export const armarServicios = (estado: EstadoDeCuenta, propuestas: PropuestaProyectoPublica[] = []): Servicio[] => {
   const servicios = estado.proyectos.map(({ proyecto, resumen, saldo }): Servicio => {
     const unidades = estado.unidades.find((u) => u.proyecto.id === proyecto.id)
     const proximo = estado.proximos.find((p) => p.proyecto.id === proyecto.id)
@@ -78,6 +116,7 @@ export const armarServicios = (estado: EstadoDeCuenta): Servicio[] => {
       otrasMonedas: resumen.otrasMonedas,
       meses: unidades?.meses ?? null,
       activas: unidades ? unidades.activasEsteMes.map((u) => u.nombre) : null,
+      aprobacion: aprobacionDe(proyecto, propuestas),
     }
   })
 

@@ -29,9 +29,17 @@ export type ClientePublico = Pick<ClienteRow, 'nombre' | 'contacto' | 'emailCont
 
 export type EstadoPublico = {
   cliente: ClientePublico
+  // Sin propuestaNotas (son internas)
   proyectos: ProyectoRow[]
   pagos: PagoRow[]
+  // Propuestas del CRM vinculadas a un proyecto, sin borradores (plugin 1.5.0+)
+  propuestasProyectos?: PropuestaProyectoPublica[]
 }
+
+export type PropuestaProyectoPublica = Pick<
+  PropuestaRow,
+  'id' | 'tipo' | 'titulo' | 'estado' | 'proyectoId' | 'fecha' | 'enviadaEl' | 'respondidaEl' | 'respuestaNombre' | 'token'
+>
 
 export type ProyectoRow = {
   id: number
@@ -54,8 +62,24 @@ export type ProyectoRow = {
   // Registro manual de la propuesta (hecha fuera del CRM). 'YYYY-MM-DD'
   propuestaEnviada?: string | null
   propuestaAprobada?: string | null
+  // Notas del registro manual: quién aprobó, por qué medio y comentario libre
+  propuestaAprobadaPor?: string | null
+  propuestaMedio?: MedioAprobacion | null
+  propuestaNotas?: string | null
   archivos?: ArchivoRow[]
 }
+
+export const MEDIO_APROBACION_VALUES = ['EMAIL', 'WHATSAPP', 'REUNION', 'LLAMADA', 'PAPEL', 'OTRO'] as const
+export type MedioAprobacion = (typeof MEDIO_APROBACION_VALUES)[number]
+
+export const MEDIOS_APROBACION: { value: MedioAprobacion; label: string }[] = [
+  { value: 'EMAIL', label: 'Email' },
+  { value: 'WHATSAPP', label: 'WhatsApp' },
+  { value: 'REUNION', label: 'Reunión' },
+  { value: 'LLAMADA', label: 'Llamada' },
+  { value: 'PAPEL', label: 'Firma en papel' },
+  { value: 'OTRO', label: 'Otro' },
+]
 
 export const TIPO_ARCHIVO_VALUES = ['PROPUESTA', 'CONTRATO', 'OTRO'] as const
 export type TipoArchivo = (typeof TIPO_ARCHIVO_VALUES)[number]

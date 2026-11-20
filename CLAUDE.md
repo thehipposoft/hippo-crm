@@ -71,7 +71,7 @@ Tipos en `lib/types.ts`. WordPress los guarda como custom post types.
 | Entidad  | Endpoints                                                    | Campos principales |
 |----------|--------------------------------------------------------------|--------------------|
 | Cliente  | `GET/POST /clientes`, `GET/PUT /clientes/:id`, `GET /clientes/:id/proyectos` | nombre, contacto, telefono, emailContacto, pais |
-| Proyecto | `GET/POST /proyectos`, `GET/PUT /proyectos/:id`, `GET /proyectos/:id/pagos` | clienteId, estado, fechaInicio, deadline, tipoProyecto (ON_OFF \| RECURRENTE), valor, moneda, frecuenciaPago, url, accionPendiente, propuestaEnviada, propuestaAprobada (registro manual), archivos |
+| Proyecto | `GET/POST /proyectos`, `GET/PUT /proyectos/:id`, `GET /proyectos/:id/pagos` | clienteId, estado, fechaInicio, deadline, tipoProyecto (ON_OFF \| RECURRENTE), valor, moneda, frecuenciaPago, url, accionPendiente, propuestaEnviada, propuestaAprobada, propuestaAprobadaPor, propuestaMedio (EMAIL \| WHATSAPP \| REUNION \| LLAMADA \| PAPEL \| OTRO), propuestaNotas (registro manual; las notas nunca salen en links públicos ni en el portal), archivos |
 | Archivo de proyecto | `POST /proyectos/:id/archivos/ticket` → `{ url, maxMb }` (el navegador sube ahí, multipart `archivo`), `POST /archivos/:id/ticket` → `{ url }` (ver/bajar), `DELETE /archivos/:id` (vienen embebidos en el proyecto como `archivos`) | nombre, tipo (PROPUESTA \| CONTRATO \| OTRO), mime, tamano, subidoEl |
 | Pago     | `GET/POST /pagos`, `GET/PUT/DELETE /pagos/:id`               | proyectoId, fecha, monto, moneda, medioPago, notas |
 | Unidad   | `POST /unidades`, `GET/PUT/DELETE /unidades/:id` (vienen embebidas en el proyecto como `unidades`) | proyectoId, nombre, fechaAlta, fechaBaja, notas |
@@ -83,7 +83,10 @@ Tipos en `lib/types.ts`. WordPress los guarda como custom post types.
 | Pago de costo | `POST /pagos-costo` (con `costo_id`), `GET/PUT/DELETE /pagos-costo/:id` (vienen embebidos en el costo como `pagos`) | costoId, fecha, periodo ('YYYY-MM' o 'YYYY'), monto, moneda, metodoPago, notas |
 
 - Link público: `POST/DELETE /clientes/:id/link-publico` (con login) y
-  `GET /publico/estado-de-cuenta/:token` (sin login, sin notas ni acciones internas).
+  `GET /publico/estado-de-cuenta/:token` (sin login, sin notas ni acciones internas). Incluye el
+  registro de la propuesta de cada proyecto (sin `propuestaNotas`) y `propuestasProyectos`: las propuestas
+  del CRM vinculadas a un proyecto, sin borradores (id, tipo, titulo, estado, proyectoId, fecha,
+  enviadaEl, respondidaEl, respuestaNombre, token). El portal recibe lo mismo.
   El cliente trae `tokenPublico` cuando tiene link activo.
 - Propuesta pública: `GET /publico/propuesta/:token` (404 si es BORRADOR; `?vista=0` no la marca
   como vista) y `POST /publico/propuesta/:token/respuesta` `{ accion: ACEPTAR | RECHAZAR, nombre, comentario }`
@@ -183,11 +186,13 @@ Tipos en `lib/types.ts`. WordPress los guarda como custom post types.
   cuentas bancarias por documento, link público con aceptar/rechazar (firma con nombre y aviso
   por email), PDF, historial (enviada, vista, respondida) y "Crear proyecto" desde una aceptada
 - Sección "Propuesta" en la ficha del proyecto: fechas de envío y aprobación (del CRM o a mano),
-  propuestas vinculadas y archivos (subir la propuesta en PDF, contratos, etc.)
+  notas de quién aprobó y por qué medio (solo para propuestas hechas fuera del CRM), propuestas
+  vinculadas y archivos (arrastrar y soltar, varios a la vez: propuesta en PDF, contratos, etc.)
 - Portal de clientes: varias personas por cliente invitadas por email, contraseña propia,
   saldo, próximos vencimientos, pagos con recibos, propuestas para responder, PDF del estado de cuenta
 - Estado de cuenta interactivo para el cliente: un colapsable por servicio (saldo, progreso, cuotas
-  pendientes, próxima cuota, pagos con recibos), filtros con saldo / al día; el PDF no cambia
+  pendientes, próxima cuota, pagos con recibos, "Propuesta y aprobación"), filtros con saldo / al día;
+  el PDF no cambia
 - Propuesta interactiva para el cliente: índice que sigue la lectura, secciones con etiquetas y
   stickers de marca, ítems desplegables y "Responder" siempre a mano; el PDF no cambia
 - Nueva marca Hippo (2026): paleta, Inter, logo y documentos

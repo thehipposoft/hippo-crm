@@ -80,3 +80,13 @@ html:has(.propuesta-interactiva) {
     transform: scaleX(1);
   }
 }
+
+/* Barra indeterminada de "Subiendo…" (archivos de proyecto) */
+@keyframes subiendo {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}

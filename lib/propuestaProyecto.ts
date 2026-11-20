@@ -5,16 +5,22 @@ import type { PropuestaRow, ProyectoRow } from './types'
 // Manda el registro manual del proyecto (propuestas hechas fuera del CRM); si no hay,
 // se toma de las propuestas del CRM vinculadas al proyecto.
 
-export type FechaPropuesta = {
+// Lo mínimo de una propuesta para el resumen (el link público y el portal reciben solo esto)
+export type PropuestaParaResumen = Pick<
+  PropuestaRow,
+  'id' | 'tipo' | 'titulo' | 'estado' | 'proyectoId' | 'fecha' | 'enviadaEl' | 'respondidaEl' | 'respuestaNombre' | 'token'
+>
+
+export type FechaPropuesta<P extends PropuestaParaResumen = PropuestaRow> = {
   fecha: string
   // De dónde sale: carga manual o la propuesta del CRM (con su id)
-  origen: { tipo: 'MANUAL' } | { tipo: 'CRM'; propuesta: PropuestaRow }
+  origen: { tipo: 'MANUAL' } | { tipo: 'CRM'; propuesta: P }
 }
 
-export type ResumenPropuestaProyecto = {
-  vinculadas: PropuestaRow[]
-  enviada: FechaPropuesta | null
-  aprobada: FechaPropuesta | null
+export type ResumenPropuestaProyecto<P extends PropuestaParaResumen = PropuestaRow> = {
+  vinculadas: P[]
+  enviada: FechaPropuesta<P> | null
+  aprobada: FechaPropuesta<P> | null
   // Días entre el envío y la aprobación
   dias: number | null
 }
@@ -24,27 +30,27 @@ const diaDeInstante = (iso: string | null): string | null => {
   return fecha ? aIso(fecha) : null
 }
 
-const primeraDel = (propuestas: PropuestaRow[], fechaDe: (p: PropuestaRow) => string | null): FechaPropuesta | null => {
+const primeraDel = <P extends PropuestaParaResumen>(propuestas: P[], fechaDe: (p: P) => string | null): FechaPropuesta<P> | null => {
   const candidatas = propuestas
     .map((propuesta) => ({ propuesta, fecha: fechaDe(propuesta) }))
-    .filter((c): c is { propuesta: PropuestaRow; fecha: string } => c.fecha !== null)
+    .filter((c): c is { propuesta: P; fecha: string } => c.fecha !== null)
     .sort((a, b) => a.fecha.localeCompare(b.fecha))
   const primera = candidatas[0]
   return primera ? { fecha: primera.fecha, origen: { tipo: 'CRM', propuesta: primera.propuesta } } : null
 }
 
-export const resumenPropuestaProyecto = (
+export const resumenPropuestaProyecto = <P extends PropuestaParaResumen>(
   proyecto: Pick<ProyectoRow, 'id' | 'propuestaEnviada' | 'propuestaAprobada'>,
-  propuestas: PropuestaRow[]
-): ResumenPropuestaProyecto => {
+  propuestas: P[]
+): ResumenPropuestaProyecto<P> => {
   const vinculadas = propuestas
     .filter((p) => p.proyectoId === proyecto.id)
     .sort((a, b) => b.fecha.localeCompare(a.fecha) || b.id - a.id)
 
-  const enviada: FechaPropuesta | null = proyecto.propuestaEnviada
+  const enviada: FechaPropuesta<P> | null = proyecto.propuestaEnviada
     ? { fecha: proyecto.propuestaEnviada.slice(0, 10), origen: { tipo: 'MANUAL' } }
     : primeraDel(vinculadas, (p) => diaDeInstante(p.enviadaEl))
-  const aprobada: FechaPropuesta | null = proyecto.propuestaAprobada
+  const aprobada: FechaPropuesta<P> | null = proyecto.propuestaAprobada
     ? { fecha: proyecto.propuestaAprobada.slice(0, 10), origen: { tipo: 'MANUAL' } }
     : primeraDel(
         vinculadas.filter((p) => p.estado === 'ACEPTADA'),

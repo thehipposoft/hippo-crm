@@ -41,8 +41,13 @@ export const SeccionPropuesta = ({ proyecto, propuestas }: SeccionPropuestaProps
             enviada={enviada}
             aprobada={aprobada}
             dias={dias}
-            manualEnviada={proyecto.propuestaEnviada ?? null}
-            manualAprobada={proyecto.propuestaAprobada ?? null}
+            manual={{
+              enviada: proyecto.propuestaEnviada ?? null,
+              aprobada: proyecto.propuestaAprobada ?? null,
+              aprobadaPor: proyecto.propuestaAprobadaPor ?? null,
+              medio: proyecto.propuestaMedio ?? null,
+              notas: proyecto.propuestaNotas ?? null,
+            }}
           />
         </div>
 

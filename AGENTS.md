@@ -169,7 +169,8 @@ En local se trabaja contra los datos reales de producción: cuidado al crear, ed
   oliva, stickers "Let's make it simple." / "Shall we start?", insignia "H.") en `components/marca/Marca.tsx`
 - Estado de cuenta en pantalla (link `/estado/[token]` y portal): vista por servicio (`lib/documentos/servicios.ts`
   → `ServiciosEstado`, colapsables con filtros; los que deben arrancan abiertos) + `ResumenEstado` y
-  `HistorialPagos` (`components/documentos/VistaEstado.tsx`). El PDF sigue siendo `EstadoDeCuentaDoc`:
+  `HistorialPagos` (`components/documentos/VistaEstado.tsx`). "Propuesta y aprobación" de cada servicio:
+  `aprobacionDe` (mismo criterio que la ficha del proyecto, `lib/propuestaProyecto.ts`); nunca las notas. El PDF sigue siendo `EstadoDeCuentaDoc`:
   en `/estado/[token]` está oculto en pantalla y es lo único que sale al imprimir
 - `/estado/[token]` es público (excepción en `proxy.ts`): nunca mostrar notas de pagos,
   acciones pendientes ni datos que no sean del cliente del token. WordPress ya los quita.
@@ -198,9 +199,14 @@ En local se trabaja contra los datos reales de producción: cuidado al crear, ed
 
 ## Archivos de proyectos
 - Nunca pasan por Next ni por Netlify: la server action pide un ticket a WordPress y el navegador
-  sube (XHR con progreso, `ArchivosProyecto`) o abre la URL de descarga directo en WordPress
-- La subida con progreso hace preflight CORS: WordPress tiene que aceptar el origen del CRM
-  (`includes/cors.php` del plugin: crm.thehipposoft.com y localhost:3000)
+  sube (`ArchivosProyecto`: zona de arrastrar y soltar, varios archivos, uno por uno con su ticket)
+  o abre la URL de descarga directo en WordPress
+- La subida tiene que ser un pedido "simple" (fetch + FormData, sin headers propios ni escuchar el
+  progreso): si no, el navegador manda un preflight OPTIONS que el hosting corta sin CORS y la subida
+  falla. Igual WordPress tiene que aceptar el origen del CRM (`includes/cors.php` del plugin)
+- Tipo y tamaño se validan antes en el navegador (y WordPress vuelve a validar)
+- Notas de la aprobación (quién, medio, comentario) solo cuando la aprobación no viene de una
+  propuesta del CRM (`FechasPropuesta`); si la aceptaron en el link se muestra la firma
 
 ## Pagos de costos
 - Cada pago (`PagoCostoRow`) cubre un **período**: `'YYYY-MM'` (mensual y semanal) o `'YYYY'` (anual).
